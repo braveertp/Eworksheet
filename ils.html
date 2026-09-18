@@ -161,6 +161,9 @@
             border-radius: 1rem;
             padding: 10px 14px;
             margin-top: 8px;
+            /* ensure text doesn't overflow on tiny screens */
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
         .sub-run-form-panel {
             background: #f5f3ff;
@@ -172,6 +175,34 @@
         }
         .sub-run-form-panel.open {
             display: block;
+        }
+
+        /* Sub-run section header — keep label + button on one line */
+        #sub-run-section > div:first-child {
+            flex-wrap: nowrap;
+        }
+
+        /* Sub-run toggle button */
+        #sub-run-toggle-btn {
+            font-size: 9px;
+            padding: 4px 10px;
+            letter-spacing: 0.05em;
+        }
+        @media (max-width: 360px) {
+            #sub-run-toggle-btn span { display: none; }
+            #sub-run-toggle-btn { padding: 4px 8px; }
+        }
+
+        /* Sub-run inline form on mobile: full-width, comfortable padding */
+        #sub-run-form-inline {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 400px) {
+            #sub-run-form-inline {
+                padding: 12px;
+                border-radius: 1rem;
+            }
         }
 
         .modal-overlay {
@@ -243,20 +274,58 @@
 
         .horizontal-field {
             display: grid;
-            grid-template-columns: 1fr 140px 90px;
+            grid-template-columns: minmax(0,1fr) 138px 105px;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 7px 16px;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 1rem;
             transition: all 0.2s;
         }
+        @media (max-width: 480px) {
+            .horizontal-field {
+                grid-template-columns: minmax(0,1fr) 126px 92px;
+                gap: 8px;
+                padding: 6px 12px;
+            }
+        }
         @media (max-width: 400px) {
             .horizontal-field {
-                grid-template-columns: 1fr 110px 70px;
-                gap: 8px;
-                padding: 10px 12px;
+                grid-template-columns: minmax(0,1fr) 110px 82px;
+                gap: 6px;
+                padding: 6px 10px;
+            }
+        }
+
+        /* Tighter columns inside sub-run purple box (less available width due to padding) */
+        #sub-run-form-inline .horizontal-field {
+            grid-template-columns: minmax(0,1fr) 118px 88px;
+            gap: 8px;
+            padding: 6px 12px;
+        }
+        /* field label & tol badge inside sub-run: allow wrapping on narrow */
+        #sub-run-form-inline .horizontal-field .field-label {
+            min-width: 0;
+            word-break: break-word;
+        }
+        #sub-run-form-inline .horizontal-field span.text-\[9px\] {
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+        @media (max-width: 420px) {
+            #sub-run-form-inline .horizontal-field {
+                grid-template-columns: minmax(0,1fr) 100px 76px;
+                gap: 6px;
+                padding: 5px 10px;
+            }
+        }
+        @media (max-width: 360px) {
+            #sub-run-form-inline .horizontal-field {
+                grid-template-columns: minmax(0,1fr) 100px 66px;
+                gap: 4px;
+                padding: 5px 8px;
             }
         }
 
@@ -575,12 +644,12 @@
             <form id="run-form" class="p-6" autocomplete="off">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div class="relative">
-                        <select id="profile-select" onchange="onProfileChange()" required class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-full outline-none appearance-none transition-all text-sm font-semibold text-slate-700">
+                        <select id="profile-select" onchange="onProfileChange()" required class="w-full py-2.5 px-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-full outline-none appearance-none transition-all text-sm font-semibold text-slate-700">
                         </select>
                         <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
                     </div>
                     <div class="relative">
-                        <select id="tx-select" onchange="onTxChange()" required class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-full outline-none appearance-none transition-all text-sm font-semibold text-slate-700">
+                        <select id="tx-select" onchange="onTxChange()" required class="w-full py-2.5 px-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-full outline-none appearance-none transition-all text-sm font-semibold text-slate-700">
                             <option value="">-- Transmitter No. --</option>
                             <option value="TX1">TX1</option>
                             <option value="TX2">TX2</option>
@@ -594,14 +663,15 @@
 
                     <!-- SUB-RUN SECTION (shown only when profile supports it) -->
                     <div id="sub-run-section" class="hidden mt-6">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-code-branch text-purple-500 text-sm"></i>
-                                <span id="sub-run-label" class="text-[11px] font-black uppercase tracking-wider text-purple-700">Sub-Run</span>
+                        <!-- Header row: label left, cancel button right (only shown when form is open) -->
+                        <div class="flex items-center justify-between mb-3 min-w-0">
+                            <div class="flex items-center gap-2 min-w-0 flex-1">
+                                <i class="fas fa-code-branch text-purple-500 text-sm shrink-0"></i>
+                                <span id="sub-run-label" class="text-[11px] font-black uppercase tracking-wider text-purple-700 truncate">Sub-Run</span>
                             </div>
                             <button type="button" id="sub-run-toggle-btn"
                                 onclick="toggleSubRunForm()"
-                                class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-purple-600 bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-full hover:bg-purple-100 transition-all active:scale-95">
+                                class="shrink-0 ml-2 flex items-center gap-1 font-black uppercase text-purple-600 bg-purple-50 border border-purple-200 rounded-full hover:bg-purple-100 active:scale-95 transition-all">
                                 <i id="sub-run-toggle-icon" class="fas fa-plus text-[8px]"></i>
                                 <span id="sub-run-toggle-text">Add</span>
                             </button>
@@ -609,14 +679,18 @@
 
                         <!-- Sub-run inline form -->
                         <div id="sub-run-form-inline" class="hidden bg-purple-50 border border-purple-200 rounded-2xl p-4">
-                            <div class="mb-3">
+                            <!-- Transmitter selector -->
+                            <div class="mb-3 relative">
                                 <select id="sub-tx-select" onchange="onSubTxChange()" required
-                                    class="w-full p-3 bg-white border border-purple-200 focus:border-purple-400 rounded-full outline-none text-sm font-semibold text-slate-700">
+                                    class="w-full py-2 px-4 bg-white border border-purple-200 focus:border-purple-400 rounded-full outline-none appearance-none text-sm font-semibold text-slate-700 pr-10">
                                     <option value="">-- Transmitter No. --</option>
                                     <option value="TX1">TX1</option>
                                     <option value="TX2">TX2</option>
                                 </select>
+                                <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
                             </div>
+
+                            <!-- Dynamic sub-fields -->
                             <div id="sub-dynamic-fields" class="flex flex-col gap-3"></div>
                         </div>
 
@@ -936,12 +1010,12 @@ function renderSubFields(containerId, system, profile, cid) {
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
             inputHtml = `
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1 min-w-0">
                     <input type="number" step="any" id="${cid}-field-${key}" name="${key}"
                         oninput="validateSubAlignment(this, '${cid}', '${key}')"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
-                        class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
-                    <span id="${cid}-badge-${key}" class="text-xs font-black w-6 text-slate-400">—</span>
+                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
+                    <span id="${cid}-badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
                 </div>`;
         } else if (isZone) {
             inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
@@ -977,11 +1051,11 @@ function renderSubFields(containerId, system, profile, cid) {
         }
 
         div.innerHTML = `
-            <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${f.label}</span>
+            <div class="flex flex-col min-w-0 field-label">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight break-words">${f.label}</span>
             </div>
-            <div class="text-right">${tolHtml}</div>
-            <div>${inputHtml}</div>`;
+            <div class="text-right min-w-0">${tolHtml}</div>
+            <div class="min-w-0 overflow-hidden">${inputHtml}</div>`;
         container.appendChild(div);
     });
 }
@@ -1103,18 +1177,24 @@ function openSubRunForm(runId, subSystem, subProfile) {
         .map(t => `<option value="${t}">${t}</option>`).join('');
 
     panel.innerHTML = `
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-[10px] font-black uppercase tracking-wider text-purple-700">
-                <i class="fas fa-code-branch mr-1"></i> Sub-Run: ${subSystem} ${subProfile}
-            </span>
+        <div class="flex items-center justify-between gap-2 mb-3 min-w-0">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <i class="fas fa-code-branch text-purple-500 text-xs shrink-0"></i>
+                <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 truncate">
+                    Sub-Run: ${subSystem} ${subProfile}
+                </span>
+            </div>
             <button type="button" onclick="this.closest('.sub-run-form-panel').remove()"
-                class="text-slate-400 hover:text-red-400 text-xs"><i class="fas fa-times"></i></button>
+                class="shrink-0 text-slate-400 hover:text-red-400 text-xs px-2 py-1 rounded-full hover:bg-red-50 transition-all">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="mb-3">
-            <select id="${cid}-tx" class="w-full p-3 bg-white border border-purple-200 focus:border-purple-400 rounded-full outline-none text-sm font-semibold text-slate-700">
+        <div class="mb-3 relative">
+            <select id="${cid}-tx" class="w-full p-3 bg-white border border-purple-200 focus:border-purple-400 rounded-full outline-none appearance-none text-sm font-semibold text-slate-700 pr-10">
                 <option value="">-- Transmitter --</option>
                 ${txOptions}
             </select>
+            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
         </div>
         <div id="${cid}-fields" class="flex flex-col gap-3 mb-3"></div>
         <button type="button" id="${cid}-save-btn"
@@ -1762,20 +1842,36 @@ function applyDynamicTolerance() {
             const formInline = document.getElementById('sub-run-form-inline');
             const icon = document.getElementById('sub-run-toggle-icon');
             const text = document.getElementById('sub-run-toggle-text');
+            const btn = document.getElementById('sub-run-toggle-btn');
+            const banner = document.getElementById('sub-run-profile-banner');
+            const bannerText = document.getElementById('sub-run-profile-text');
+
             if (newRunSubEnabled) {
                 formInline.classList.remove('hidden');
-                icon.className = 'fas fa-times text-[4px]';
+                icon.className = 'fas fa-times text-[8px]';
                 text.textContent = 'Cancel';
+
+
+                // Show profile banner
+                const section = document.getElementById('sub-run-section');
+                const subSystem = section.dataset.subSystem;
+                const subProfile = section.dataset.subProfile;
+                if (subSystem && subProfile && banner && bannerText) {
+                    bannerText.textContent = `${subSystem} — ${subProfile}`;
+                    banner.classList.remove('hidden');
+                }
                 // Only render if not already rendered — preserves existing input values
                 const subContainer = document.getElementById('sub-dynamic-fields');
                 if (!subContainer.hasChildNodes()) {
                     renderNewRunSubFields();
                 }
-                // Sub-TX can be any TX (TX1 or TX2), no restriction
             } else {
                 formInline.classList.add('hidden');
-                icon.className = 'fas fa-plus text-[4px]';
+                if (banner) banner.classList.add('hidden');
+                icon.className = 'fas fa-plus text-[8px]';
                 text.textContent = 'Add';
+
+
                 document.getElementById('sub-dynamic-fields').innerHTML = '';
                 document.getElementById('sub-tx-select').value = '';
             }
@@ -1944,12 +2040,12 @@ function applyDynamicTolerance() {
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
             inputHtml = `
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1 min-w-0">
                     <input type="number" step="any" id="field-${key}" name="${key}"
                         oninput="validateAlignmentInput(this)"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
-                        class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
-                    <span id="badge-${key}" class="text-xs font-black w-6 text-slate-400">—</span>
+                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
+                    <span id="badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
                 </div>`;
         } else if (isZone) {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
@@ -1984,13 +2080,13 @@ function applyDynamicTolerance() {
         }
 
         div.innerHTML = `
-            <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${f.label}</span>
+            <div class="flex flex-col min-w-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight break-words">${f.label}</span>
             </div>
-            <div class="text-right">
+            <div class="text-right min-w-0">
                 ${tolHtml}
             </div>
-            <div>${inputHtml}</div>`;
+            <div class="min-w-0 overflow-hidden">${inputHtml}</div>`;
 
         container.appendChild(div);
     });
