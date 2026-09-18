@@ -132,6 +132,12 @@
             color: #0f172a;
         }
 
+        @media (max-width: 480px) {
+            .tab-pill {
+                font-size: 9px !important;
+            }
+        }
+
         input, select, button {
             font-size: 16px !important;
         }
@@ -219,6 +225,20 @@
         .input-error {
             border: 2px solid #ef4444 !important;
             background-color: #fef2f2 !important;
+        }
+
+        /* Bottom pill nav responsive */
+        .bottom-nav-btn {
+            font-size: 11px;
+        }
+        @media (max-width: 480px) {
+            .bottom-nav-btn {
+                font-size: 9px;
+                padding-left: 14px;
+                padding-right: 14px;
+                padding-top: 8px;
+                padding-bottom: 8px;
+            }
         }
 
         .horizontal-field {
@@ -645,11 +665,11 @@
     <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
         <div class="flex items-center gap-1 bg-slate-900/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl shadow-slate-900/40">
             <button id="btn-nav-new" onclick="switchPage('new')"
-                class="flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-bold transition-all duration-200 bg-blue-500 text-white shadow-md">
+                class="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold transition-all duration-200 bg-blue-500 text-white shadow-md bottom-nav-btn">
                 <i class="fas fa-plus text-xs"></i> New Run
             </button>
             <button id="btn-nav-list" onclick="switchPage('list')"
-                class="relative flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-bold transition-all duration-200 text-slate-400">
+                class="relative flex items-center gap-2 px-5 py-2.5 rounded-full font-bold transition-all duration-200 text-slate-400 bottom-nav-btn">
                 <i class="fas fa-list-ul text-xs"></i> Run Lists
                 <span id="nav-run-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[8px] font-black rounded-full flex items-center justify-center"></span>
             </button>
