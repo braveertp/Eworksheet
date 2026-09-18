@@ -1,0 +1,2746 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ILS Management</title>
+    
+    <!-- Web App Manifest / Standalone Mode for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ILS/DME">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+            --header-main-height: 58px; 
+            --nav-tab-height: 64px;    
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9; 
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: contain;
+        }
+
+        .fixed-top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 70;
+            padding-top: var(--safe-area-top);
+            background-color: #0f172a;
+            height: calc(var(--header-main-height) + var(--safe-area-top));
+            display: flex;
+            align-items: center;
+        }
+
+        .smart-nav-wrapper {
+            position: fixed;
+            top: calc(var(--header-main-height) + var(--safe-area-top));
+            left: 0;
+            right: 0;
+            z-index: 60;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #0f172a;
+            height: var(--nav-tab-height);
+        }
+        
+        .nav-hidden {
+            transform: translateY(-100%);
+            pointer-events: none;
+        }
+
+        .main-content-padding {
+            padding-top: calc(var(--header-main-height) + var(--nav-tab-height) + var(--safe-area-top) + 16px);
+        }
+
+        .run-card { border-left: 4px solid #3b82f6; transition: all 0.2s; }
+        .run-card:hover { background-color: #f8fafc; transform: translateY(-2px); }
+        
+        .form-container { 
+            background: white; 
+            border-radius: 1.5rem; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            display: none;
+        }
+        .form-container.active {
+            display: block;
+            max-height: 1500px;
+            opacity: 1;
+            margin-top: 0.75rem;
+        }
+        
+        .pill-button {
+            transition: all 0.3s ease;
+        }
+        .pill-button.hidden {
+            display: none;
+        }
+        
+        #recent-section {
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            opacity: 0;
+            transform: translateY(10px);
+            display: none;
+        }
+        #recent-section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tab-nav-wrapper {
+            position: relative;
+            background-color: rgba(30, 41, 59, 0.8);
+            padding: 4px;
+            border-radius: 9999px;
+            display: flex;
+            width: 100%;
+        }
+        .tab-indicator {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            bottom: 4px;
+            width: calc(50% - 4px);
+            background-color: white;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 0;
+        }
+        .tab-pill {
+            position: relative;
+            z-index: 10;
+            transition: color 0.3s ease;
+            color: #94a3b8;
+        }
+        .tab-pill.active {
+            color: #0f172a;
+        }
+
+        input, select, button {
+            font-size: 16px !important;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .val-pass { color: #10b981 !important; border-color: #10b981 !important; background-color: #f0fdf4 !important; }
+        .val-fail { color: #ef4444 !important; border-color: #ef4444 !important; background-color: #fef2f2 !important; }
+
+        /* ===== SUB-RUN ===== */
+        .sub-run-card {
+            border-left: 3px solid #8b5cf6;
+            background: #faf5ff;
+            border-radius: 1rem;
+            padding: 10px 14px;
+            margin-top: 8px;
+        }
+        .sub-run-form-panel {
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            border-radius: 1rem;
+            padding: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+        .sub-run-form-panel.open {
+            display: block;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 2rem;
+            padding: 2rem;
+            transform: scale(0.9);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        
+        optgroup {
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        optgroup option {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .input-error {
+            border: 2px solid #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+
+        .horizontal-field {
+            display: grid;
+            grid-template-columns: 1fr 140px 90px;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            transition: all 0.2s;
+        }
+        @media (max-width: 400px) {
+            .horizontal-field {
+                grid-template-columns: 1fr 110px 70px;
+                gap: 8px;
+                padding: 10px 12px;
+            }
+        }
+
+        /* ===== TOLERANCE SWITCH ===== */
+        /* From Uiverse.io by nhfiz */
+        /* Multiple Toggle Switch by Abu Shafiyya */
+
+        .tol-fieldset {
+            border: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
+
+        /* Hide default radio */
+        .tol-radio input[type="radio"] {
+            position: absolute;
+            visibility: hidden;
+            display: none;
+            opacity: 0;
+            z-index: -1;
+        }
+
+        /* Customizing label */
+        .tol-radio label {
+            position: relative;
+            padding: 8px 16px 8px 20px;
+            cursor: pointer;
+            border-radius: 20px;
+            color: #3b82f6;
+            margin: 0px 2px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .tol-radio label, .tol-radio label::before {
+            -webkit-transition: .25s all ease;
+            transition: .25s all ease;
+        }
+
+        .tol-radio label::before {
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            content: " ";
+            position: absolute;
+            top: 30%;
+            left: 0;
+            width: 1em;
+            height: 1em;
+            border: 2px solid #3b82f6;
+        }
+
+        .tol-radio input[type="radio"] + label::before {
+            border-radius: 1em;
+        }
+
+        /* Checked toggle */
+        .tol-radio input[type="radio"]:checked + label {
+            color: #fff;
+            background: #3b82f6;
+            z-index: 1;
+        }
+
+        .tol-radio input[type="radio"]:checked + label {
+            padding: 8px 16px 8px 16px;
+        }
+
+        .tol-radio input[type="radio"]:checked + label::before {
+            top: 2px;
+            width: 100%;
+            height: 2em;
+            z-index: -1;
+        }
+
+        .tol-radio:hover input[type="radio"]:checked + label {
+            -webkit-box-shadow: #3b82f638 0px 0px 0px 10px;
+            box-shadow: #3b82f638 0px 0px 0px 10px;
+        }
+
+        /* ===== GLOBAL LOADING ===== */
+#global-loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+#global-loading.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Spinner */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Disable interaction ทั้งหน้า */
+.loading-lock {
+    pointer-events: none;
+    user-select: none;
+    overflow: hidden; /* 🔥 กัน scroll */
+}
+
+/* ===== PRINT / EXPORT REPORT ===== */
+#print-report { display: none; }
+
+@media print {
+    body * { visibility: hidden; }
+    #print-report, #print-report * { visibility: visible; }
+    #print-report {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 24px;
+        color: #0f172a;
+        font-family: 'Inter', Arial, sans-serif;
+    }
+    #print-report table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    #print-report th, #print-report td {
+        border: 1px solid #cbd5e1;
+        padding: 6px 8px;
+        font-size: 10px;
+        text-align: left;
+    }
+    #print-report th { background: #f1f5f9; }
+    #print-report .status-SAT { color: #059669; font-weight: 700; }
+    #print-report .status-UNSAT { color: #dc2626; font-weight: 700; }
+    #print-report .status-INITIAL { color: #64748b; font-weight: 700; }
+    #print-report .val-fail-print { color: #dc2626; font-weight: 700; }
+    #print-report h1 { font-size: 18px; margin: 0 0 2px 0; }
+    #print-report h2 { font-size: 13px; margin: 16px 0 4px 0; }
+    #print-report .report-meta { font-size: 11px; color: #334155; margin-bottom: 4px; }
+    @page { margin: 14mm; }
+}
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <!-- Initialization Modal -->
+    <div id="init-modal" class="modal-overlay active">
+        <div class="modal-content shadow-2xl">
+            <div class="text-center mb-6"> 
+                <h2 class="text-xl font-black text-slate-800">STATION INFORMATION</h2>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-[3fr_2fr] gap-3">
+    
+    <!-- ICAO SEARCH -->
+    <div class="relative">
+        <input 
+            type="text" 
+            id="airport-search"
+            placeholder="Search ICAO / IDEN"
+            oninput="handleAirportInput(this)"
+            onkeydown="handleAirportKeydown(event)"
+            onfocus="handleAirportFocus(this)"
+            autocomplete="off"
+            class="w-full p-4 pr-12 bg-slate-50 border border-slate-100 rounded-full outline-none focus:border-blue-500 font-bold text-slate-700">
+
+        <button 
+            type="button"
+            id="clear-airport-btn"
+            onclick="clearAirportInput()"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 hidden">
+            <i class="fas fa-times-circle text-lg"></i>
+        </button>
+
+        <div id="airport-dropdown" 
+             class="absolute w-full bg-white shadow-xl rounded-xl mt-1 max-h-60 overflow-y-auto hidden z-50">
+        </div>
+    </div>
+
+    <!-- ✅ CATEGORY DROPDOWN -->
+    <div class="relative">
+        <select id="init-category"
+    onchange="handleCategoryChange(this)"
+    class="w-full p-4 bg-slate-50 border border-slate-100 rounded-full outline-none font-bold text-slate-400">
+    
+    <option value="">Category</option>
+    <option value="CAT I">CAT I</option>
+    <option value="CAT II">CAT II</option>
+    <option value="CAT III">CAT III</option>
+</select>
+    </div>
+
+</div>
+
+<div class="flex items-center justify-between mt-2 ml-1">
+    <div id="airport-name" class="text-[11px] text-slate-500 font-bold"></div>
+    <label title="Import an airport list (JSON) so ICAO search works offline" class="text-[9px] text-slate-400 hover:text-blue-500 font-bold cursor-pointer flex items-center gap-1 mr-1">
+        <i class="fas fa-file-import"></i> Import list
+        <input type="file" accept="application/json,.json" class="hidden" onchange="importAirportFile(this)" autocomplete="off">
+    </label>
+</div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comm. Width</label>
+                        <!-- Added inputmode="decimal" for iOS numeric keyboard with dot -->
+                        <input type="number" step="0.01" id="init-width" placeholder="3.00" 
+                               inputmode="decimal"
+                               onkeydown="handleModalNavigation(event, 'init-angle')"
+                               onblur="formatDecimal(this)"
+                               class="w-full p-4 bg-slate-50 border border-slate-100 rounded-full outline-none focus:border-blue-500 transition-all font-bold text-slate-700" autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comm. Angle</label>
+                        <!-- Added inputmode="decimal" for iOS numeric keyboard with dot -->
+                        <input type="number" step="0.01" id="init-angle" placeholder="3.00" 
+                               inputmode="decimal"
+                               onkeydown="handleModalNavigation(event, 'submit-init')"
+                               onblur="formatDecimal(this)"
+                               class="w-full p-4 bg-slate-50 border border-slate-100 rounded-full outline-none focus:border-blue-500 transition-all font-bold text-slate-700" autocomplete="off">
+                    </div>
+                </div>
+                <div id="modal-error-msg" class="text-red-500 text-[10px] font-bold text-center hidden">
+                    <i class="fas fa-exclamation-circle mr-1"></i> Please fill all the field
+                </div>
+                <button id="submit-init" onclick="saveInitialSettings()" class="w-full bg-slate-900 text-white py-4 rounded-full font-bold mt-4 shadow-lg active:scale-95 transition-all">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-top-header shadow-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center w-full">
+            <button onclick="goHome()" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors min-w-[60px]">
+                <i class="fas fa-arrow-left text-sm"></i>
+                <span class="hidden sm:inline text-[10px] font-bold uppercase tracking-wider">Back</span>
+            </button>
+            
+            <div class="text-center flex flex-col items-center">
+                <h1 class="text-[20px] font-black tracking-widest leading-tight text-white">ILS/DME</h1>
+                <span class="text-[8px] uppercase font-bold text-slate-500 tracking-[0.2em]">Flight Inspection</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="changeAirport()" title="Change airport / station" class="flex items-center gap-1 text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-location-dot text-sm"></i>
+                    <span class="hidden sm:inline text-[10px] font-bold uppercase tracking-wider">Station</span>
+                </button>
+
+                <div id="header-info" class="flex flex-col items-end min-w-[100px] opacity-0 transition-opacity duration-500">
+    
+    <!-- ICAO / IDENT -->
+    <span id="display-ident" class="text-[12px] font-black text-blue-400 uppercase leading-none">
+        ---
+    </span>
+
+    <!-- 🆕 Airport Name -->
+    <span id="display-airport" class="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">
+        ---
+    </span>
+
+    <!-- Width / Angle -->
+    <div class="flex gap-2 mt-1">
+        <span class="text-[10px] text-slate-500 font-bold">
+            W: <span id="display-width" class="text-slate-300">0.00</span>
+        </span>
+        <span class="text-[10px] text-slate-500 font-bold">
+            A: <span id="display-angle" class="text-slate-300">0.00</span>
+        </span>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="smart-nav" class="smart-nav-wrapper">
+        <div class="px-4 h-full flex items-center">
+            <div class="container mx-auto max-w-4xl w-full">
+                <div class="tab-nav-wrapper">
+                    <div id="tab-indicator" class="tab-indicator"></div>
+                    <button onclick="switchTab('LOC')" id="tab-LOC" class="tab-pill active flex-1 py-2 text-[11px] font-bold flex items-center justify-center gap-2 outline-none">
+                        LOC Localizer
+                    </button>
+                    <button onclick="switchTab('GP')" id="tab-GP" class="tab-pill flex-1 py-2 text-[11px] font-bold flex items-center justify-center gap-2 outline-none">
+                        GP Glide Slope
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="container mx-auto px-4 max-w-4xl main-content-padding pb-28">
+        <!-- PAGE: NEW RUN -->
+        <div id="page-new-run">
+
+        <section id="form-card" class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-visible">
+            <div class="p-5 bg-slate-50 border-b flex items-center justify-between rounded-t-3xl">
+                <h3 class="font-bold text-slate-800">Add <span id="form-type-label" class="text-blue-600 uppercase">LOCALIZER</span> Run</h3>
+            </div>
+            <form id="run-form" class="p-6" autocomplete="off">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="relative">
+                        <select id="profile-select" onchange="onProfileChange()" required class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-full outline-none appearance-none transition-all text-sm font-semibold text-slate-700">
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    </div>
+                    <div class="relative">
+                        <select id="tx-select" onchange="onTxChange()" required class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-full outline-none appearance-none transition-all text-sm font-semibold text-slate-700">
+                            <option value="">-- Transmitter No. --</option>
+                            <option value="TX1">TX1</option>
+                            <option value="TX2">TX2</option>
+                        </select>
+                        <i class="fas fa-broadcast-tower absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <div id="dynamic-fields-container" class="hidden">
+                    <div id="dynamic-fields" class="flex flex-col gap-3"></div>
+
+                    <!-- SUB-RUN SECTION (shown only when profile supports it) -->
+                    <div id="sub-run-section" class="hidden mt-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-code-branch text-purple-500 text-sm"></i>
+                                <span id="sub-run-label" class="text-[11px] font-black uppercase tracking-wider text-purple-700">Sub-Run</span>
+                            </div>
+                            <button type="button" id="sub-run-toggle-btn"
+                                onclick="toggleSubRunForm()"
+                                class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-purple-600 bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-full hover:bg-purple-100 transition-all active:scale-95">
+                                <i id="sub-run-toggle-icon" class="fas fa-plus text-[8px]"></i>
+                                <span id="sub-run-toggle-text">Add</span>
+                            </button>
+                        </div>
+
+                        <!-- Sub-run inline form -->
+                        <div id="sub-run-form-inline" class="hidden bg-purple-50 border border-purple-200 rounded-2xl p-4">
+                            <div class="mb-3">
+                                <select id="sub-tx-select" onchange="onSubTxChange()" required
+                                    class="w-full p-3 bg-white border border-purple-200 focus:border-purple-400 rounded-full outline-none text-sm font-semibold text-slate-700">
+                                    <option value="">-- Transmitter No. --</option>
+                                    <option value="TX1">TX1</option>
+                                    <option value="TX2">TX2</option>
+                                </select>
+                            </div>
+                            <div id="sub-dynamic-fields" class="flex flex-col gap-3"></div>
+                        </div>
+
+                        <!-- Sub-run preview (after filled) -->
+                        <div id="sub-run-preview" class="hidden sub-run-card mt-2"></div>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-slate-100">
+                        <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white py-4 rounded-full font-bold shadow-lg hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                            <span id="btn-text" class="flex items-center gap-2">
+                                <i class="fas fa-save"></i> Save Current Run
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="form-placeholder" class="py-12 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl">
+                    <i class="fas fa-clipboard-list text-3xl mb-3 opacity-20"></i>
+                    <p class="text-xs font-medium">Please select a profile to input results</p>
+                </div>
+            </form>
+        </section>
+        </div><!-- end page-new-run -->
+
+        <!-- PAGE: RUN LISTS -->
+        <div id="page-run-list" class="hidden">
+            <div class="flex items-center gap-3 mb-6 justify-between">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Run Lists</h2>
+                    <div id="run-count" class="bg-slate-200 text-slate-600 px-2.5 py-0.5 rounded-full text-[10px] font-bold">0</div>
+                </div>
+                <button onclick="exportReport()" class="flex items-center gap-2 bg-slate-900 text-white text-[11px] font-bold px-4 py-2.5 rounded-full shadow hover:bg-slate-800 active:scale-95 transition-all">
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+            </div>
+            <div id="runs-container" class="space-y-4"></div>
+            <div id="empty-runs" class="py-20 text-center text-slate-400">
+                <i class="fas fa-list-ul text-4xl mb-3 opacity-20"></i>
+                <p class="text-xs font-medium">No runs recorded yet</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BOTTOM PILL NAV -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <div class="flex items-center gap-1 bg-slate-900/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl shadow-slate-900/40">
+            <button id="btn-nav-new" onclick="switchPage('new')"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-bold transition-all duration-200 bg-blue-500 text-white shadow-md">
+                <i class="fas fa-plus text-xs"></i> New Run
+            </button>
+            <button id="btn-nav-list" onclick="switchPage('list')"
+                class="relative flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-bold transition-all duration-200 text-slate-400">
+                <i class="fas fa-list-ul text-xs"></i> Run Lists
+                <span id="nav-run-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[8px] font-black rounded-full flex items-center justify-center"></span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSystem = 'LOC';
+        let initialSettings = { icao: '', ident: '', category: '', width: 0, angle: 0 };
+        let lastScrollY = window.scrollY;
+        const smartNav = document.getElementById('smart-nav');
+
+        // Scroll Handling Logic
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            const isAtBottom = (currentScrollY + windowHeight) >= (documentHeight - 50);
+
+            if (currentScrollY <= 10) {
+                smartNav.classList.remove('nav-hidden');
+            } else if (isAtBottom) {
+                smartNav.classList.add('nav-hidden');
+            } else if (currentScrollY > lastScrollY && currentScrollY > 60) {
+                smartNav.classList.add('nav-hidden');
+            } else if (currentScrollY < lastScrollY) {
+                smartNav.classList.remove('nav-hidden');
+            }
+            
+            lastScrollY = currentScrollY;
+        });
+
+        function customRound(value, decimals = 2) {
+            if (isNaN(value)) return "0.00";
+            const factor = Math.pow(10, decimals);
+            const shifted = value * factor;
+            const integerPart = Math.floor(shifted);
+            const fractionPart = shifted - integerPart;
+            return (fractionPart > 0.5 ? (integerPart + 1) / factor : integerPart / factor).toFixed(decimals);
+        }
+
+        const PROFILE_OPTIONS = {
+            LOC: [
+                { group: 'Clearance & Width / Alignment', options: [
+                    { value: 'CW',   label: 'Clearance & Width (CW)' },
+                    { value: 'AS',   label: 'Alignment & Structure (AS)' },
+                ]},
+                { group: 'Monitor', options: [
+                    { value: 'MN',   label: 'Monitor Narrow (MN)' },
+                    { value: 'MB',   label: 'Monitor Wide (MB)' },
+                    { value: 'AM',   label: 'Alignment Monitor (AM)' },
+                ]},
+                { group: 'Coverage', options: [
+                    { value: 'COLR', label: 'Coverage (COLR)' },
+                    { value: 'IC',   label: 'Inner Coverage (IC)' },
+                ]},
+            ],
+            GP: [
+                { group: 'Path & Clearance', options: [
+                    { value: 'CW',     label: 'Clearance & Width (CW)' },
+                    { value: 'AS',     label: 'Alignment & Structure (AS)' },
+                    { value: 'OC',     label: 'Obstruction Clearance (OC)' },
+                ]},
+                { group: 'Monitor', options: [
+                    { value: 'MN',     label: 'Monitor Narrow (MN)' },
+                    { value: 'MB',     label: 'Monitor Wide (MB)' },
+                    { value: 'AM9LR',  label: 'High Angle Alarm (AM9LR)' },
+                    { value: 'AM1LR',  label: 'Low Angle Alarm (AM1LR)' },
+                ]},
+                { group: 'Coverage', options: [
+                    { value: 'COLR',   label: 'Coverage (COLR)' },
+                ]},
+            ],
+        };
+
+        function renderProfileOptions() {
+            const sel = document.getElementById('profile-select');
+            sel.innerHTML = '<option value="">-- Choose Profile --</option>';
+            (PROFILE_OPTIONS[currentSystem] || []).forEach(group => {
+                const og = document.createElement('optgroup');
+                og.label = group.group;
+                group.options.forEach(o => {
+                    const opt = document.createElement('option');
+                    opt.value = o.value;
+                    opt.textContent = o.label;
+                    og.appendChild(opt);
+                });
+                sel.appendChild(og);
+            });
+        }
+
+        const SYSTEMS = {
+    LOC: {
+        CW: {
+            width: { label: "Course Width", tol: "Dynamic", min: 0, max: 0 },
+            sym: { label: "Symmetry", tol: "45.0 - 55.0%", min: 45.0, max: 55.0 },
+            clr_150: { label: "Clearance 150", tol: "≥150μA / 10°–35°", type: "clearance" },
+            clr_90: { label: "Clearance 90", tol: "≥150μA / 10°–35°", type: "clearance" }
+        },
+        AS: {
+            modulation: { label: "Modulation", tol: "38.0 - 42.0%", min: 38.0, max: 42.0 },
+            alignment: { label: "Alignment", tol: "±5μA (L/R)", type: "alignment", min: -5, max: 5 },
+            zone1: { label: "Course Structure - Z1", tol: "≤±30μA / ≤4NM", type: "zone", maxUA: 30, nmMin: 4, nmMax: 11 },
+            zone2: { label: "Course Structure - Z2", tol: "≤±15μA / 4–0.576NM", type: "zone", maxUA: 15, nmMin: 0.576, nmMax: 4 },
+            zone3: { label: "Course Structure - Z3", tol: "≤±15μA / 0.576–0.3NM", type: "zone", maxUA: 15, nmMin: 0.3, nmMax: 0.576 }
+        },
+        MN: {
+            narrow: { label: "Narrow Width", tol: "Dynamic", min: 0, max: 0 },
+        },
+        MB: {
+            wide: { label: "Wide Width", tol: "Dynamic", min: 0, max: 0 },
+            clr_150: { label: "Clearance 150", tol: "≥150μA / 10°–35°", type: "clearance" },
+            clr_90: { label: "Clearance 90", tol: "≥150μA / 10°–35°", type: "clearance" }
+        },
+        AM: {
+            alarm_150: { label: "Alignment Alarm 150", tol: "±15μA", min: 0, max: 15 },
+            alarm_90: { label: "Alignment Alarm 90", tol: "±15μA", min: 0, max: 15 }
+        },
+        COLR: {
+            ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
+            sig_strength: { label: "Signal Strength", tol: "≥5 μV", type: "checkbox" },
+            clr_150:      { label: "Clearance 150",   tol: "≥150 μA", type: "checkbox" },
+            clr_90:       { label: "Clearance 90",    tol: "≥150 μA", type: "checkbox" }
+        },
+        IC: {
+            ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
+            sig_strength: { label: "Signal Strength", tol: "≥5 μV", type: "checkbox" },
+            clr_150:      { label: "Clearance 150",   tol: "≥150 μA", type: "checkbox" },
+            clr_90:       { label: "Clearance 90",    tol: "≥150 μA", type: "checkbox" }
+        },
+    },
+
+    GP: {
+        CW: {
+            width: { label: "Path Width", tol: "Dynamic", min: 0, max: 0 },
+            sym: { label: "Symmetry", tol: "33.0 - 67.0%", min: 33, max: 67 },
+            clr_above_path: { label: "Clearance Above Path", tol: "≥150 μA", type: "checkbox" },
+            sbp: { label: "Clearance Below Path at 190μA", tol: "Dynamic", min: 0, max: 0 }
+        },
+        AS: {
+            modulation: { label: "Modulation", tol: "75.0 - 85.0%", min: 75.0, max: 85.0 },
+            angle: { label: "Path Angle*", tol: "Dynamic", min: 0, max: 0 },
+            zone1: { label: "Path Structure - Z1", tol: "≤±30μA / 11–4NM", type: "zone", maxUA: 30, nmMin: 4, nmMax: 11 },
+            zone2: { label: "Path Structure - Z2", tol: "≤±30μA / 4–0.576NM", type: "zone", maxUA: 30, nmMin: 0.576, nmMax: 4 },
+            zone3: { label: "Path Structure - Z3", tol: "≤±30μA / 0.576–0.3NM", type: "zone", maxUA: 30, nmMin: 0.3, nmMax: 0.576 }
+        },
+        MN: {
+            narrow: { label: "Narrow Width", tol: "Dynamic", min: 0, max: 0 },
+        },
+        MB: {
+            wide: { label: "Wide Width", tol: "Dynamic", min: 0, max: 0 },
+            clr_above_path: { label: "Clearance Above Path", tol: "≥150 μA", type: "checkbox" },
+            sbp: { label: "Structure Below Path at 190μA", tol: "Dynamic", min: 0, max: 0 }
+        },
+        AM9LR: {
+            high: { label: "High Angle Alarm", tol: "Dynamic", min: 0, max: 0 }
+        },
+        AM1LR: {
+            low: { label: "Low Angle Alarm", tol: "Dynamic", min: 0, max: 0 }
+        },
+        COLR: {
+            ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
+            sig_strength: { label: "Signal Strength", tol: "≥5 μV", type: "checkbox" },
+            clr_150:      { label: "Clearance 150",   tol: "≥150 μA", type: "checkbox" },
+            clr_90:       { label: "Clearance 90",    tol: "≥150 μA", type: "checkbox" }
+        },
+        OC: {
+            obs_clr:      { label: "Obstruction Clearance", tolValue: 180, type: "checkbox", toleranceSwitch: true }
+        }
+    }
+};
+
+function getField(system, profile, key) {
+    return SYSTEMS?.[system]?.[profile]?.[key];
+}
+
+// ===== SUB-RUN RULES =====
+// Key: "SYSTEM_PROFILE", Value: array of allowed sub-profiles [{system, profile, label}]
+const SUB_RUN_RULES = {
+    'LOC_AS': [
+        { system: 'GP',  profile: 'AS',   label: 'GP AS (Alignment & Structure)' },
+    ],
+    'GP_AS': [
+        { system: 'LOC', profile: 'AS',   label: 'LOC AS (Alignment & Structure)' },
+    ],
+    'LOC_COLR': [
+        { system: 'GP',  profile: 'CW',   label: 'GP CW (Clearance & Width)' },
+    ],
+    'GP_CW': [
+        { system: 'LOC', profile: 'COLR', label: 'LOC COLR (Coverage)' },
+    ],
+};
+
+function getSubRunOptions(run) {
+    const key = `${run.systemType}_${run.profile}`;
+    const rules = SUB_RUN_RULES[key] || [];
+    // Filter out sub-runs already added (same system+profile, any TX)
+    const existing = (run.subRuns || []).map(s => `${s.systemType}_${s.profile}`);
+    return rules.filter(r => !existing.includes(`${r.system}_${r.profile}`));
+}
+
+// ===== SUB-RUN FIELD RENDERING =====
+// containerId = the div to fill (e.g. "sub-123-GP-AS-fields")
+// cid = base id (e.g. "sub-123-GP-AS") used for input IDs and badge IDs
+function renderSubFields(containerId, system, profile, cid) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    const fields = SYSTEMS[system]?.[profile];
+    if (!fields) return;
+
+    // GP COLR direction selector
+    if (system === 'GP' && profile === 'COLR') {
+        const dirDiv = document.createElement('div');
+        dirDiv.className = 'mb-2';
+        dirDiv.innerHTML = `
+            <input type="hidden" id="${cid}-colr_dir" name="colr_dir" value="LEFT" autocomplete="off">
+            <div class="flex gap-2">
+                <button type="button" id="${cid}-dir-left"
+                    onclick="setSubColrDir('${cid}','LEFT')"
+                    class="flex-1 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all bg-blue-500 text-white shadow-sm">
+                    &#9664; LEFT 8&deg;
+                </button>
+                <button type="button" id="${cid}-dir-right"
+                    onclick="setSubColrDir('${cid}','RIGHT')"
+                    class="flex-1 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all bg-slate-100 text-slate-400">
+                    RIGHT 8&deg; &#9654;
+                </button>
+            </div>`;
+        container.appendChild(dirDiv);
+    }
+
+    const keys = Object.keys(fields);
+    keys.forEach((key, idx) => {
+        const f = fields[key];
+        const isLast = idx === keys.length - 1;
+        const nextId = isLast ? `${cid}-save-btn` : `${cid}-field-${keys[idx + 1]}`;
+
+        const div = document.createElement('div');
+        div.className = 'horizontal-field group';
+
+        const isClearance = f.type === 'clearance';
+        const isAlignment = f.type === 'alignment';
+        const isZone      = f.type === 'zone';
+        const isCheckbox  = f.type === 'checkbox';
+        const hasToleranceSwitch = f.toleranceSwitch === true;
+
+        let inputHtml;
+        if (isCheckbox) {
+            inputHtml = `
+                <label class="flex items-center justify-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="${cid}-field-${key}" name="${key}" value="PASS"
+                        onchange="validateSubCheckbox(this, '${cid}', '${key}')"
+                        class="w-5 h-5 rounded-full accent-green-500 cursor-pointer" autocomplete="off">
+                    <span id="${cid}-badge-cb-${key}" class="text-xs font-black text-slate-400">—</span>
+                </label>`;
+        } else if (isClearance) {
+            inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
+                placeholder="μA / °"
+                oninput="validateSubClearance(this)"
+                onkeydown="handleSlashBackspace(event, '${nextId}')"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
+        } else if (isAlignment) {
+            inputHtml = `
+                <div class="flex items-center gap-2">
+                    <input type="number" step="any" id="${cid}-field-${key}" name="${key}"
+                        oninput="validateSubAlignment(this, '${cid}', '${key}')"
+                        onkeydown="handleFieldEnter(event, '${nextId}')"
+                        class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
+                    <span id="${cid}-badge-${key}" class="text-xs font-black w-6 text-slate-400">—</span>
+                </div>`;
+        } else if (isZone) {
+            inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
+                placeholder="μA / NM"
+                oninput="validateSubZone(this, '${cid}', '${key}')"
+                onkeydown="handleSlashBackspace(event, '${nextId}')"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
+        } else if (hasToleranceSwitch) {
+            inputHtml = `<input type="checkbox" id="${cid}-field-${key}" name="${key}" value="PASS"
+                onchange="validateSubCheckbox(this, '${cid}', '${key}')"
+                class="w-5 h-5 rounded-full accent-green-500 cursor-pointer" autocomplete="off">`;
+        } else {
+            inputHtml = `<input type="number" step="any" id="${cid}-field-${key}" name="${key}"
+                oninput="validateSubInput(this, '${system}', '${profile}', '${key}')"
+                onkeydown="handleFieldEnter(event, '${nextId}')"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">`;
+        }
+
+        let tolHtml;
+        if (hasToleranceSwitch) {
+            tolHtml = `<fieldset class="tol-fieldset">
+                <div class="tol-radio">
+                    <input type="radio" id="${cid}-tol-180-${key}" name="${cid}-tol-switch-${key}" value="180" checked autocomplete="off">
+                    <label for="${cid}-tol-180-${key}">180μA</label>
+                </div>
+                <div class="tol-radio">
+                    <input type="radio" id="${cid}-tol-150-${key}" name="${cid}-tol-switch-${key}" value="150" autocomplete="off">
+                    <label for="${cid}-tol-150-${key}">150μA</label>
+                </div>
+            </fieldset>`;
+        } else {
+            tolHtml = `<span class="text-[9px] font-bold text-purple-500 bg-purple-50 px-1.5 py-1 rounded block text-center">${f.tol}</span>`;
+        }
+
+        div.innerHTML = `
+            <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${f.label}</span>
+            </div>
+            <div class="text-right">${tolHtml}</div>
+            <div>${inputHtml}</div>`;
+        container.appendChild(div);
+    });
+}
+
+function setSubColrDir(cid, dir) {
+    document.getElementById(`${cid}-colr_dir`).value = dir;
+    const active = 'bg-blue-500 text-white shadow-sm';
+    const inactive = 'bg-slate-100 text-slate-400';
+    const L = document.getElementById(`${cid}-dir-left`);
+    const R = document.getElementById(`${cid}-dir-right`);
+    if (dir === 'LEFT') {
+        L.className = L.className.replace(inactive, active);
+        R.className = R.className.replace(active, inactive);
+    } else {
+        R.className = R.className.replace(inactive, active);
+        L.className = L.className.replace(active, inactive);
+    }
+}
+
+function validateSubInput(el, system, profile, key) {
+    const val = parseFloat(el.value);
+    if (isNaN(val)) return;
+    const field = getField(system, profile, key);
+    if (!field) return;
+    const pass = val >= field.min && val <= field.max;
+    el.classList.toggle('val-pass', pass);
+    el.classList.toggle('val-fail', !pass);
+}
+function validateSubCheckbox(el, cid, key) {
+    const badge = document.getElementById(`${cid}-badge-cb-${key}`);
+    if (badge) {
+        badge.innerText = el.checked ? 'SAT' : '—';
+        badge.className = `text-xs font-black ${el.checked ? 'text-green-600' : 'text-slate-400'}`;
+    }
+}
+function validateSubAlignment(el, cid, key) {
+    const val = parseFloat(el.value);
+    const badge = document.getElementById(`${cid}-badge-${key}`);
+    if (isNaN(val)) {
+        el.classList.remove('val-pass','val-fail');
+        if (badge) { badge.innerText = '—'; badge.className = 'text-xs font-black w-6 text-slate-400'; }
+        return;
+    }
+    const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
+    const pass = Math.abs(val) <= 5;
+    el.classList.toggle('val-pass', pass);
+    el.classList.toggle('val-fail', !pass);
+    if (badge) {
+        badge.innerText = dir;
+        badge.className = `text-xs font-black ${val === 0 ? 'w-8' : 'w-6'} ${pass ? 'text-green-600' : 'text-red-600'}`;
+    }
+}
+function validateSubClearance(el) {
+    const raw = el.value.trim();
+    if (/^\d{3}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
+        el.value = raw + '/'; return;
+    }
+    const parts = raw.split('/');
+    if (parts.length !== 2) { el.classList.remove('val-pass','val-fail'); return; }
+    const uA = parseFloat(parts[0]), angle = parseFloat(parts[1]);
+    if (isNaN(uA) || isNaN(angle)) { el.classList.remove('val-pass','val-fail'); return; }
+    const pass = uA >= 150 && angle >= 10 && angle <= 35;
+    el.classList.toggle('val-pass', pass);
+    el.classList.toggle('val-fail', !pass);
+}
+function validateSubZone(el, cid, key) {
+    const raw = el.value.trim();
+    if (/^\d{2}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
+        el.value = raw + '/'; return;
+    }
+    const parts = raw.split('/');
+    if (parts.length !== 2) { el.classList.remove('val-pass','val-fail'); return; }
+    const uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
+    if (isNaN(uA) || isNaN(nm)) { el.classList.remove('val-pass','val-fail'); return; }
+
+    // cid can be "newrun-sub" (new-run form) or "sub-{runId}-{system}-{profile}" (edit form)
+    let field;
+    if (cid === 'newrun-sub') {
+        // Look up from the sub-run section dataset
+        const section = document.getElementById('sub-run-section');
+        const subSystem = section?.dataset?.subSystem;
+        const subProfile = section?.dataset?.subProfile;
+        field = getField(subSystem, subProfile, key);
+    } else {
+        const m = cid.match(/^sub-\d+-([A-Z]+)-([A-Z0-9]+)$/);
+        if (!m) return;
+        field = getField(m[1], m[2], key);
+    }
+    if (!field || field.maxUA === undefined) return;
+    const pass = uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+    el.classList.toggle('val-pass', pass);
+    el.classList.toggle('val-fail', !pass);
+}
+
+// Open sub-run form panel
+function openSubRunForm(runId, subSystem, subProfile) {
+    const cid = `sub-${runId}-${subSystem}-${subProfile}`;
+    // Toggle: if already open, close it
+    const existing = document.getElementById(`${cid}-panel`);
+    if (existing) {
+        existing.classList.toggle('open');
+        return;
+    }
+    // Create panel under the run card
+    const card = document.getElementById(`run-card-${runId}`);
+    if (!card) return;
+
+    const panel = document.createElement('div');
+    panel.className = 'sub-run-form-panel open';
+    panel.id = `${cid}-panel`;
+
+    // TX options (filter out TXs already used by existing sub-runs for same system+profile)
+    const run = currentRuns.find(r => r.id === runId);
+    const usedTX = (run.subRuns || [])
+        .filter(s => s.systemType === subSystem && s.profile === subProfile)
+        .map(s => s.transmitter);
+    const txOptions = ['TX1','TX2']
+        .filter(t => !usedTX.includes(t))
+        .map(t => `<option value="${t}">${t}</option>`).join('');
+
+    panel.innerHTML = `
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] font-black uppercase tracking-wider text-purple-700">
+                <i class="fas fa-code-branch mr-1"></i> Sub-Run: ${subSystem} ${subProfile}
+            </span>
+            <button type="button" onclick="this.closest('.sub-run-form-panel').remove()"
+                class="text-slate-400 hover:text-red-400 text-xs"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mb-3">
+            <select id="${cid}-tx" class="w-full p-3 bg-white border border-purple-200 focus:border-purple-400 rounded-full outline-none text-sm font-semibold text-slate-700">
+                <option value="">-- Transmitter --</option>
+                ${txOptions}
+            </select>
+        </div>
+        <div id="${cid}-fields" class="flex flex-col gap-3 mb-3"></div>
+        <button type="button" id="${cid}-save-btn"
+            onclick="saveSubRun(${runId}, '${subSystem}', '${subProfile}', '${cid}')"
+            class="w-full bg-purple-600 text-white py-3 rounded-full font-bold text-sm shadow active:scale-95 transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-save"></i> Save Sub-Run
+        </button>
+    `;
+    card.appendChild(panel);
+    renderSubFields(`${cid}-fields`, subSystem, subProfile, cid);
+}
+
+function saveSubRun(runId, subSystem, subProfile, cid) {
+    const txEl = document.getElementById(`${cid}-tx`);
+    if (!txEl || !txEl.value) {
+        txEl.classList.add('input-error');
+        setTimeout(() => txEl.classList.remove('input-error'), 1500);
+        return;
+    }
+
+    const run = currentRuns.find(r => r.id === runId);
+    if (!run) return;
+
+    const fields = SYSTEMS[subSystem]?.[subProfile] || {};
+    const subData = {
+        id: Date.now(),
+        systemType: subSystem,
+        profile: subProfile,
+        transmitter: txEl.value,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        values: {},
+        status: 'INITIAL'
+    };
+
+    // Collect all field values
+    Object.keys(fields).forEach(key => {
+        const f = fields[key];
+        const el = document.getElementById(`${cid}-field-${key}`);
+        if (!el) return;
+        if (f?.type === 'checkbox' || f?.toleranceSwitch) {
+            subData.values[key] = el.checked ? 'PASS' : 'FAIL';
+        } else if (f?.type === 'clearance' || f?.type === 'zone') {
+            subData.values[key] = el.value.trim();
+        } else {
+            subData.values[key] = customRound(parseFloat(el.value), 2);
+        }
+    });
+
+    // GP COLR direction
+    if (subSystem === 'GP' && subProfile === 'COLR') {
+        const dirEl = document.getElementById(`${cid}-colr_dir`);
+        if (dirEl) subData.values['colr_dir'] = dirEl.value;
+    }
+
+    if (!run.subRuns) run.subRuns = [];
+    run.subRuns.push(subData);
+    saveToLocal();
+
+    // Remove form panel and re-render
+    const panel = document.getElementById(`${cid}-panel`);
+    if (panel) panel.remove();
+    renderRuns();
+}
+
+function deleteSubRun(runId, subId) {
+    if (!confirm('Delete this sub-run?')) return;
+    const run = currentRuns.find(r => r.id === runId);
+    if (!run || !run.subRuns) return;
+    run.subRuns = run.subRuns.filter(s => s.id !== subId);
+    saveToLocal();
+    renderRuns();
+}
+
+function renderSubRunCard(sub, runId) {
+    const fields = SYSTEMS[sub.systemType]?.[sub.profile] || {};
+    let valHtml = '';
+    // ✅ Filter only sub-run profile keys (same as main-run fix)
+    const subRunKeys = Object.keys(fields);
+    const displayedKeys = subRunKeys.filter(k => sub.values.hasOwnProperty(k) && !k.endsWith('_tol') && k !== 'colr_dir');
+
+    for (const k of displayedKeys) {
+        const raw = sub.values[k];
+        const field = getField(sub.systemType, sub.profile, k);
+        let colorClass = '', displayVal = raw;
+
+        if (field?.type === 'checkbox') {
+            colorClass = raw === 'PASS' ? 'text-green-600' : 'text-red-600';
+        } else if (field?.type === 'clearance') {
+            const parts = String(raw).split('/');
+            const uA = parseFloat(parts[0]), angle = parseFloat(parts[1]);
+            colorClass = (!isNaN(uA) && !isNaN(angle) && uA >= 150 && angle >= 10 && angle <= 35) ? 'text-green-600' : 'text-red-600';
+        } else if (field?.type === 'zone') {
+            const parts = String(raw).split('/');
+            const uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
+            colorClass = (!isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax) ? 'text-green-600' : 'text-red-600';
+        } else if (field?.type === 'alignment') {
+            const val = parseFloat(raw);
+            const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
+            colorClass = Math.abs(val) <= 5 ? 'text-green-600' : 'text-red-600';
+            displayVal = val === 0 ? 'C/L' : `${raw} ${dir}`;
+        } else {
+            const val = parseFloat(raw);
+            colorClass = field ? (val >= field.min && val <= field.max ? 'text-green-600' : 'text-red-600') : '';
+        }
+
+        valHtml += `
+            <div class="flex flex-col min-w-[75px]">
+                <span class="text-[8px] text-slate-400 font-bold uppercase tracking-tighter">${field?.label || k.replace(/_/g,' ')}</span>
+                <span class="font-bold text-xs ${colorClass}">${displayVal}</span>
+            </div>`;
+    }
+
+    let statusColor = 'text-gray-500';
+    if (sub.status === 'SAT') statusColor = 'text-green-600';
+    if (sub.status === 'UNSAT') statusColor = 'text-red-600';
+
+    const colrDirBadge = (sub.systemType === 'GP' && sub.profile === 'COLR' && sub.values.colr_dir)
+        ? `<span class="px-1.5 py-0.5 text-[8px] font-black rounded ${sub.values.colr_dir === 'LEFT' ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}">${sub.values.colr_dir === 'LEFT' ? '◄' : '►'} ${sub.values.colr_dir} 8°</span>`
+        : '';
+
+    return `
+        <div class="sub-run-card" id="sub-card-${sub.id}">
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <i class="fas fa-code-branch text-purple-400 text-[10px]"></i>
+                    <span class="px-1.5 py-0.5 bg-purple-800 text-white text-[8px] font-black rounded uppercase">${sub.systemType}</span>
+                    <span class="font-bold text-slate-700 text-xs">${sub.profile}</span>
+                    <span class="px-1 py-0.5 bg-purple-100 text-purple-600 text-[8px] font-black rounded">${sub.transmitter}</span>
+                    ${colrDirBadge}
+                    <span class="text-[8px] text-slate-400">${sub.timestamp}</span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                    <select onchange="updateSubRunStatus(${runId}, ${sub.id}, this.value)"
+                        class="text-[8px] font-bold ${statusColor} border border-purple-200 rounded-full px-2 py-1 bg-white focus:outline-none">
+                        <option value="INITIAL" ${sub.status==='INITIAL'?'selected':''}>INITIAL</option>
+                        <option value="SAT"     ${sub.status==='SAT'    ?'selected':''}>SAT</option>
+                        <option value="UNSAT"   ${sub.status==='UNSAT'  ?'selected':''}>UNSAT</option>
+                    </select>
+                    <button type="button" onclick="deleteSubRun(${runId}, ${sub.id})" title="Delete sub-run" class="text-slate-300 hover:text-red-500 transition-colors">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-2">${valHtml}</div>
+        </div>`;
+}
+
+function updateSubRunStatus(runId, subId, status) {
+    const run = currentRuns.find(r => r.id === runId);
+    if (!run || !run.subRuns) return;
+    const sub = run.subRuns.find(s => s.id === subId);
+    if (sub) { sub.status = status; saveToLocal(); renderRuns(); }
+}
+
+function applyDynamicTolerance() {
+    const baseWidth = parseFloat(initialSettings.width);
+    const baseAngle = parseFloat(initialSettings.angle);
+
+    // ===== LOC parameter =====
+    const wMin = baseWidth * 0.95;
+    const wMax = baseWidth * 1.05;
+
+    if (SYSTEMS.LOC?.CW?.width) {
+            SYSTEMS.LOC.CW.width.min = wMin;
+            SYSTEMS.LOC.CW.width.max = wMax;
+            SYSTEMS.LOC.CW.width.tol = `${customRound(wMin,2)}° - ${customRound(wMax,2)}°`;
+    }
+
+    if (SYSTEMS.LOC?.MN?.narrow) {
+            SYSTEMS.LOC.MN.narrow.min = baseWidth - (baseWidth * 0.17);
+            SYSTEMS.LOC.MN.narrow.max = baseWidth - (baseWidth * 0.12);
+            SYSTEMS.LOC.MN.narrow.tol = `${customRound(baseWidth - (baseWidth * 0.17), 2)}° - ${customRound(baseWidth - (baseWidth * 0.12), 2)}°`;
+    }
+
+    if (SYSTEMS.LOC?.MB?.wide) {
+            SYSTEMS.LOC.MB.wide.min = baseWidth + (baseWidth * 0.12);
+            SYSTEMS.LOC.MB.wide.max = baseWidth + (baseWidth * 0.17);
+            SYSTEMS.LOC.MB.wide.tol = `${customRound(baseWidth + (baseWidth * 0.12), 2)}° - ${customRound(baseWidth + (baseWidth * 0.17), 2)}°`;
+    }
+
+    // ===== GP parameter =====
+    const aMin = baseAngle - 0.1;
+    const aMax = baseAngle + 0.1;
+    const aw = baseAngle * 0.12 * 2;
+
+    if (SYSTEMS.GP?.AS?.angle) {
+        SYSTEMS.GP.AS.angle.min = aMin;
+        SYSTEMS.GP.AS.angle.max = aMax;
+        SYSTEMS.GP.AS.angle.tol = `${customRound(aMin,2)}° - ${customRound(aMax,2)}°`;
+    }
+
+    if (SYSTEMS.GP?.CW?.width) {
+        SYSTEMS.GP.CW.width.min = aw - 0.1;
+        SYSTEMS.GP.CW.width.max = aw + 0.1;
+        SYSTEMS.GP.CW.width.tol = `${customRound(aw - 0.1,2)}° - ${customRound(aw + 0.1,2)}°`;
+    }
+
+    if (SYSTEMS.GP?.MN?.narrow) {
+            SYSTEMS.GP.MN.narrow.min = baseAngle * (0.12-0.0375) * 2;
+            SYSTEMS.GP.MN.narrow.max = baseAngle * (0.12-(0.12*0.25)) * 2;
+            SYSTEMS.GP.MN.narrow.tol = `${customRound(baseAngle * (0.12-0.0375) * 2, 2)}° - ${customRound(baseAngle * (0.12-(0.12*0.25)) * 2, 2)}°`;
+    }
+
+    if (SYSTEMS.GP?.MB?.wide) {
+            SYSTEMS.GP.MB.wide.min = baseAngle * (0.12+(0.12*0.25)) * 2;
+            SYSTEMS.GP.MB.wide.max = baseAngle * (0.12+0.0375) * 2;
+            SYSTEMS.GP.MB.wide.tol = `${customRound(baseAngle * (0.12+(0.12*0.25)) * 2, 2)}° - ${customRound(baseAngle * (0.12+0.0375) * 2, 2)}°`;
+    }
+
+    // ===== GP SBP (Structure Below Path) =====
+    const sbpMin = parseFloat(customRound(baseAngle * 0.3, 2));
+
+    if (SYSTEMS.GP?.CW?.sbp) {
+        SYSTEMS.GP.CW.sbp.min = sbpMin;
+        SYSTEMS.GP.CW.sbp.max = baseAngle
+        SYSTEMS.GP.CW.sbp.tol = `≥${customRound(sbpMin, 2)}°`;
+    }
+
+    if (SYSTEMS.GP?.MB?.sbp) {
+        SYSTEMS.GP.MB.sbp.min = sbpMin;
+        SYSTEMS.GP.MB.sbp.max = baseAngle
+        SYSTEMS.GP.MB.sbp.tol = `≥${customRound(sbpMin, 2)}°`;
+    }
+
+    if (SYSTEMS.GP?.AM9LR?.high) {
+        SYSTEMS.GP.AM9LR.high.min = baseAngle + 0.15;
+        SYSTEMS.GP.AM9LR.high.max = baseAngle + 0.30;
+        SYSTEMS.GP.AM9LR.high.tol = `${customRound(baseAngle + 0.15,2)}° - ${customRound(baseAngle + 0.30,2)}°`;
+    }
+
+    if (SYSTEMS.GP?.AM1LR?.low) {
+        SYSTEMS.GP.AM1LR.low.min = baseAngle - 0.22;
+        SYSTEMS.GP.AM1LR.low.max = baseAngle - 0.15;
+        SYSTEMS.GP.AM1LR.low.tol = `${customRound(baseAngle - 0.22,2)}° - ${customRound(baseAngle - 0.15,2)}°`;
+    }
+    // ===== LOC Zone tolerance by CAT =====
+    const cat = (initialSettings.category || '').toUpperCase();
+    const isCatII = cat.includes('II');
+
+    const zoneDef = {
+        zone1: { maxUA: 30, nmMin: 0,     nmMax: 4,     tol: "≤30μA / ≤4NM" },
+        zone2: {
+            maxUA: isCatII ? 5 : 15,
+            nmMin: 0.576, nmMax: 4,
+            tol: isCatII ? "≤5μA / 4–0.576NM" : "≤15μA / 4–0.576NM"
+        },
+        zone3: {
+            maxUA: isCatII ? 5 : 15,
+            nmMin: isCatII ? 0 : 0.3, nmMax: 0.576,
+            tol: isCatII ? "≤5μA / 0.576–0NM" : "≤15μA / 0.576–0.3NM"
+        }
+    };
+
+    ['zone1','zone2','zone3'].forEach(zk => {
+        if (SYSTEMS.LOC?.AS?.[zk]) {
+            Object.assign(SYSTEMS.LOC.AS[zk], zoneDef[zk]);
+        }
+    });
+
+    // ===== GP Zone tolerance by CAT =====
+    const gpZoneDef = {
+        zone1: {
+            maxUA: 30,
+            nmMin: 4, nmMax: 11,
+            tol: "≤±30μA / 11–4NM"
+        },
+        zone2: {
+            maxUA: 30,
+            nmMin: 0.576, nmMax: 4,
+            tol: "≤±30μA / 4–0.576NM"
+        },
+        zone3: {
+            maxUA: isCatII ? 20 : 30,
+            nmMin: isCatII ? 0 : 0.3,
+            nmMax: 0.576,
+            tol: isCatII ? "≤±20μA / 0.576–0NM" : "≤±30μA / 0.576–0.3NM"
+        }
+    };
+
+    ['zone1','zone2','zone3'].forEach(zk => {
+        if (SYSTEMS.GP?.AS?.[zk]) {
+            Object.assign(SYSTEMS.GP.AS[zk], gpZoneDef[zk]);
+        }
+    });
+}
+
+
+        let currentRuns = [];
+        let runCounter = 0; 
+
+        function handleModalNavigation(event, nextId) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const nextElement = document.getElementById(nextId);
+                if (nextElement) nextElement.tagName === 'BUTTON' ? nextElement.click() : nextElement.focus();
+            }
+        }
+
+        function saveInitialSettings() {
+            const elIdent = document.getElementById('airport-search');
+            const category = document.getElementById('init-category').value;
+            const elWidth = document.getElementById('init-width');
+            const elAngle = document.getElementById('init-angle');
+            const elError = document.getElementById('modal-error-msg');
+            
+
+            // Prefer a picked airport-DB match; otherwise fall back to whatever was typed
+            // (fully offline use, no imported list yet, still needs to work).
+            const typedIdent = elIdent.value.trim();
+            const ident = selectedAirport?.iden || typedIdent;
+            const icao = selectedAirport?.icao || typedIdent;
+            const widthRaw = parseFloat(elWidth.value.trim());
+            const angleRaw = parseFloat(elAngle.value.trim());
+
+            [elIdent, elWidth, elAngle].forEach(el => el.classList.remove('input-error'));
+            elError.classList.add('hidden');
+
+            if (!ident || isNaN(widthRaw) || isNaN(angleRaw) || !category) {
+                if (!category) document.getElementById('init-category').classList.add('input-error');
+                if (!ident) elIdent.classList.add('input-error');
+                if (isNaN(widthRaw)) elWidth.classList.add('input-error');
+                if (isNaN(angleRaw)) elAngle.classList.add('input-error');
+                elError.classList.remove('hidden');
+                return;
+            }
+
+            initialSettings = { 
+    icao: icao,
+    ident: ident,
+    airport: selectedAirport?.airport || '',
+    category: category,
+    width: parseFloat(customRound(widthRaw, 2)),
+    angle: parseFloat(customRound(angleRaw, 2))
+};
+
+            
+            applyDynamicTolerance();
+
+            document.getElementById('display-ident').innerText = `${initialSettings.icao} / ${initialSettings.ident}`;
+            document.getElementById('display-airport').innerText =`${selectedAirport?.airport || ''} (${category})`;
+            document.getElementById('display-width').innerText = Number(initialSettings.width).toFixed(2);
+            document.getElementById('display-angle').innerText = Number(initialSettings.angle).toFixed(2);
+            
+            document.getElementById('header-info').classList.remove('opacity-0');
+            document.getElementById('init-modal').classList.remove('active');
+
+            // Clear runs from previous station
+            currentRuns = [];
+            runCounter = 0;
+            localStorage.removeItem('runs');
+            localStorage.removeItem('runCounter');
+
+            renderProfileOptions();
+            renderFields();
+            saveInitialToLocal();
+        }
+
+        function setColrDir(dir) {
+            document.getElementById('field-colr_dir').value = dir;
+            const btnLeft  = document.getElementById('dir-btn-left');
+            const btnRight = document.getElementById('dir-btn-right');
+            const active   = 'bg-blue-500 text-white shadow-sm';
+            const inactive = 'bg-slate-100 text-slate-400';
+            if (dir === 'LEFT') {
+                btnLeft.className  = btnLeft.className.replace(inactive, active);
+                btnRight.className = btnRight.className.replace(active, inactive);
+            } else {
+                btnRight.className = btnRight.className.replace(inactive, active);
+                btnLeft.className  = btnLeft.className.replace(active, inactive);
+            }
+        }
+
+        function switchTab(type) {
+            currentSystem = type;
+            const indicator = document.getElementById('tab-indicator');
+            document.getElementById('tab-LOC').classList.remove('active');
+            document.getElementById('tab-GP').classList.remove('active');
+            document.getElementById('tab-' + type).classList.add('active');
+            indicator.style.transform = type === 'GP' ? 'translateX(100%)' : 'translateX(0)';
+            const typeLabel = document.getElementById('form-type-label');
+            if (typeLabel) typeLabel.innerText = type === 'GP' ? 'GLIDE SLOPE' : 'LOCALIZER';
+            renderProfileOptions();
+            hideForm();
+        }
+
+        function showForm() {
+            switchPage('new');
+            setTimeout(() => document.getElementById('profile-select').focus(), 100);
+        }
+
+        function hideForm() {
+            document.getElementById('run-form').reset();
+            renderProfileOptions();
+            renderFields();
+            resetSubmitBtn();
+        }
+
+        function resetSubmitBtn() {
+            const btn = document.getElementById('submit-btn');
+            const btnText = document.getElementById('btn-text');
+            if (btn && btnText) {
+                btn.disabled = false;
+                btnText.innerHTML = '<i class="fas fa-save"></i> Save Current Run';
+            }
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        function handleSlashBackspace(event, nextId) {
+            if (event.key === 'Backspace') {
+                const el = event.target;
+                const pos = el.selectionStart;
+                if (pos > 0 && el.value[pos - 1] === '/') {
+                    event.preventDefault();
+                    el.dataset.deletingSlash = '1';
+                    el.value = el.value.slice(0, pos - 1) + el.value.slice(pos);
+                    el.setSelectionRange(pos - 1, pos - 1);
+                    el.classList.remove('val-pass', 'val-fail');
+                    delete el.dataset.deletingSlash;
+                    return;
+                }
+            }
+            handleFieldEnter(event, nextId);
+        }
+
+        function handleFieldEnter(event, nextId) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+
+        const nextEl = document.getElementById(nextId);
+
+        if (!nextEl) return;
+
+        // ถ้าเป็นปุ่ม submit → click เลย
+        if (nextEl.tagName === 'BUTTON') {
+            nextEl.click();
+        } else {
+            nextEl.focus();
+        }
+    }
+}
+
+        function validateInput(inputElement, system, profile, fieldKey) {
+    const val = parseFloat(inputElement.value);
+    if (isNaN(val)) return;
+
+    const field = getField(system, profile, fieldKey);
+    if (!field) return;
+
+    if (val >= field.min && val <= field.max) {
+        inputElement.classList.add('val-pass');
+        inputElement.classList.remove('val-fail');
+    } else {
+        inputElement.classList.add('val-fail');
+        inputElement.classList.remove('val-pass');
+    }
+}
+
+        function validateZoneInput(el, key) {
+            const raw = el.value.trim();
+            // Auto-insert "/" after 2-digit μA value (skip if user just deleted a slash)
+            if (/^\d{2}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
+                el.value = raw + '/';
+                return;
+            }
+            const parts = raw.split('/');
+            if (parts.length !== 2) { el.classList.remove('val-pass','val-fail'); return; }
+            const uA = parseFloat(parts[0]);
+            const nm = parseFloat(parts[1]);
+            if (isNaN(uA) || isNaN(nm)) { el.classList.remove('val-pass','val-fail'); return; }
+            const profile = document.getElementById('profile-select').value;
+            const field = getField(currentSystem, profile, key);
+            if (!field) return;
+            const pass = uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+            el.classList.toggle('val-pass', pass);
+            el.classList.toggle('val-fail', !pass);
+        }
+
+        function validateAlignmentInput(el) {
+            const val = parseFloat(el.value);
+            const badge = document.getElementById('badge-' + el.id.replace('field-', ''));
+            if (isNaN(val)) {
+                el.classList.remove('val-pass', 'val-fail');
+                if (badge) { badge.innerText = '—'; badge.className = 'text-xs font-black w-6 text-slate-400'; }
+                return;
+            }
+            // + = Left, - = Right, 0 = C/L
+            const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
+            const pass = Math.abs(val) <= 5;
+            el.classList.toggle('val-pass', pass);
+            el.classList.toggle('val-fail', !pass);
+            if (badge) {
+                badge.innerText = dir;
+                badge.className = `text-xs font-black ${val === 0 ? 'w-8' : 'w-6'} ${pass ? 'text-green-600' : 'text-red-600'}`;
+            }
+        }
+
+        function validateCheckboxInput(el) {
+            const badge = document.getElementById('badge-cb-' + el.id.replace('field-', ''));
+            if (el.checked) {
+                if (badge) { badge.innerText = 'SAT'; badge.className = 'text-xs font-black text-green-600'; }
+            } else {
+                if (badge) { badge.innerText = '—'; badge.className = 'text-xs font-black text-slate-400'; }
+            }
+        }
+
+        function validateClearanceInput(el) {
+            const raw = el.value.trim();
+            // Auto-insert "/" after 3 digits for convenience (skip if user just deleted a slash)
+            if (/^\d{3}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
+                el.value = raw + '/';
+                return;
+            }
+            const parts = raw.split('/');
+            if (parts.length !== 2) {
+                el.classList.remove('val-pass', 'val-fail');
+                return;
+            }
+            const uA = parseFloat(parts[0]);
+            const angle = parseFloat(parts[1]);
+            if (isNaN(uA) || isNaN(angle)) {
+                el.classList.remove('val-pass', 'val-fail');
+                return;
+            }
+            const pass = uA >= 150 && angle >= 10 && angle <= 35;
+            el.classList.toggle('val-pass', pass);
+            el.classList.toggle('val-fail', !pass);
+        }
+
+        // Track tolerance switch values per field
+        let toleranceSwitchValues = {};
+
+        function handleToleranceSwitch(el, key) {
+            // checked = 150, unchecked = 180
+            const value = el.checked ? 150 : 180;
+            toleranceSwitchValues[key] = value;
+            
+            const profile = document.getElementById('profile-select').value;
+            
+            // Update the SYSTEMS tolerance display
+            if (SYSTEMS[currentSystem]?.[profile]?.[key]) {
+                SYSTEMS[currentSystem][profile][key].tolValue = value;
+            }
+            
+            // Update label colors
+            const fieldDiv = el.closest('.horizontal-field');
+            if (fieldDiv) {
+                const tolDiv = fieldDiv.querySelector('.text-right');
+                if (tolDiv) {
+                    const labels = tolDiv.querySelectorAll('.tol-label-off, .tol-label-on');
+                    labels.forEach(label => {
+                        if (label.classList.contains('tol-label-off')) {
+                            // 180μA label
+                            if (el.checked) {
+                                label.classList.remove('text-blue-500');
+                                label.classList.add('text-slate-400');
+                            } else {
+                                label.classList.remove('text-slate-400');
+                                label.classList.add('text-blue-500');
+                            }
+                        } else if (label.classList.contains('tol-label-on')) {
+                            // 150μA label
+                            if (el.checked) {
+                                label.classList.remove('text-slate-400');
+                                label.classList.add('text-blue-500');
+                            } else {
+                                label.classList.remove('text-blue-500');
+                                label.classList.add('text-slate-400');
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        function onProfileChange() {
+            // Reset tolerance switch values when profile changes
+            toleranceSwitchValues = {};
+            renderFields();
+            const profileSelect = document.getElementById('profile-select');
+            const txSelect = document.getElementById('tx-select');
+            if (profileSelect.value) {
+                txSelect.focus();
+            }
+        }
+
+        function onTxChange() {
+            const txSelect = document.getElementById('tx-select');
+            const profile = document.getElementById('profile-select').value;
+            
+            if (txSelect.value && profile) {
+                const fields = SYSTEMS[currentSystem]?.[profile];
+                if (fields) {
+                    const firstFieldKey = Object.keys(fields)[0];
+                    const firstInput = document.getElementById('field-' + firstFieldKey);
+                    if (firstInput) {
+                        setTimeout(() => {
+                            firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstInput.focus();
+                        }, 100);
+                    }
+                }
+            }
+            // Sub-TX can be any TX (TX1 or TX2), no restriction
+        }
+
+        // Handle sub-TX selection
+        function onSubTxChange() {
+            const subTxSelect = document.getElementById('sub-tx-select');
+            if (!subTxSelect.value) return;
+
+            const profile = document.getElementById('profile-select').value;
+            const subOpts = getNewRunSubOptions(currentSystem, profile);
+            if (subOpts.length === 0) return;
+
+            // Only render fields if not yet rendered (avoid clearing existing inputs)
+            const subContainer = document.getElementById('sub-dynamic-fields');
+            if (!subContainer.hasChildNodes()) {
+                renderNewRunSubFields();
+            }
+
+            // Focus first field
+            const firstFieldKey = Object.keys(SYSTEMS[subOpts[0].system]?.[subOpts[0].profile] || {})[0];
+            const firstInput = document.getElementById(`newrun-sub-field-${firstFieldKey}`);
+            if (firstInput) {
+                setTimeout(() => {
+                    firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInput.focus();
+                }, 100);
+            }
+        }
+
+        // ---- Sub-run state for New Run form ----
+        let newRunSubEnabled = false; // whether sub-run toggle is ON
+
+        function getNewRunSubOptions(system, profile) {
+            const key = `${system}_${profile}`;
+            return SUB_RUN_RULES[key] || [];
+        }
+
+        function toggleSubRunForm() {
+            newRunSubEnabled = !newRunSubEnabled;
+            const formInline = document.getElementById('sub-run-form-inline');
+            const icon = document.getElementById('sub-run-toggle-icon');
+            const text = document.getElementById('sub-run-toggle-text');
+            if (newRunSubEnabled) {
+                formInline.classList.remove('hidden');
+                icon.className = 'fas fa-times text-[4px]';
+                text.textContent = 'Cancel';
+                // Only render if not already rendered — preserves existing input values
+                const subContainer = document.getElementById('sub-dynamic-fields');
+                if (!subContainer.hasChildNodes()) {
+                    renderNewRunSubFields();
+                }
+                // Sub-TX can be any TX (TX1 or TX2), no restriction
+            } else {
+                formInline.classList.add('hidden');
+                icon.className = 'fas fa-plus text-[4px]';
+                text.textContent = 'Add';
+                document.getElementById('sub-dynamic-fields').innerHTML = '';
+                document.getElementById('sub-tx-select').value = '';
+            }
+        }
+
+        function renderNewRunSubFields() {
+            const profile = document.getElementById('profile-select').value;
+            const subOpts = getNewRunSubOptions(currentSystem, profile);
+            if (!subOpts.length) return;
+            const opt = subOpts[0]; // only one sub option possible per profile
+            const cid = 'newrun-sub';
+            renderSubFields('sub-dynamic-fields', opt.system, opt.profile, cid);
+            // Store which sub system/profile is active
+            document.getElementById('sub-run-section').dataset.subSystem = opt.system;
+            document.getElementById('sub-run-section').dataset.subProfile = opt.profile;
+        }
+
+        function collectNewRunSubData() {
+            const section = document.getElementById('sub-run-section');
+            const subSystem = section.dataset.subSystem;
+            const subProfile = section.dataset.subProfile;
+            console.log('collectNewRunSubData: enabled=', newRunSubEnabled, 'system=', subSystem, 'profile=', subProfile);
+            if (!newRunSubEnabled || !subSystem || !subProfile) return null;
+
+            const txEl = document.getElementById('sub-tx-select');
+            if (!txEl || !txEl.value) {
+                console.log('❌ Sub-TX not selected');
+                return 'MISSING_TX'; // sentinel: sub-run enabled but TX not chosen
+            }
+
+            const fields = SYSTEMS[subSystem]?.[subProfile] || {};
+            const cid = 'newrun-sub';
+            const subData = {
+                id: Date.now() + 1,
+                systemType: subSystem,
+                profile: subProfile,
+                transmitter: txEl.value,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                values: {},
+                status: 'INITIAL'
+            };
+
+            Object.keys(fields).forEach(key => {
+                const f = fields[key];
+                const el = document.getElementById(`${cid}-field-${key}`);
+                if (!el) {
+                    console.log(`⚠️ Element not found: ${cid}-field-${key}`);
+                    return;
+                }
+                if (f?.type === 'checkbox' || f?.toleranceSwitch) {
+                    subData.values[key] = el.checked ? 'PASS' : 'FAIL';
+                } else if (f?.type === 'clearance' || f?.type === 'zone') {
+                    subData.values[key] = el.value.trim();
+                } else {
+                    subData.values[key] = customRound(parseFloat(el.value), 2);
+                }
+            });
+            // GP COLR dir
+            if (subSystem === 'GP' && subProfile === 'COLR') {
+                const dirEl = document.getElementById(`${cid}-colr_dir`);
+                if (dirEl) subData.values['colr_dir'] = dirEl.value;
+            }
+            console.log('✅ Sub-run data collected:', subData);
+            return subData;
+        }
+
+        function renderFields() {
+    const profile = document.getElementById('profile-select').value;
+    const container = document.getElementById('dynamic-fields');
+    const dynamicSection = document.getElementById('dynamic-fields-container');
+    const placeholder = document.getElementById('form-placeholder');
+
+    container.innerHTML = '';
+
+    const fields = SYSTEMS[currentSystem]?.[profile];
+    if (!profile || !fields) {
+        dynamicSection.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        // Reset sub-run
+        newRunSubEnabled = false;
+        document.getElementById('sub-run-section').classList.add('hidden');
+        document.getElementById('sub-run-form-inline').classList.add('hidden');
+        document.getElementById('sub-dynamic-fields').innerHTML = '';
+        document.getElementById('sub-tx-select').value = '';
+        return;
+    }
+
+    dynamicSection.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+
+    // ---- Sub-run section ----
+    const subOpts = getNewRunSubOptions(currentSystem, profile);
+    const subSection = document.getElementById('sub-run-section');
+    const subFormInline = document.getElementById('sub-run-form-inline');
+    if (subOpts.length > 0) {
+        const opt = subOpts[0];
+        document.getElementById('sub-run-label').textContent = `Sub-Run: ${opt.system} ${opt.profile}`;
+        subSection.dataset.subSystem = opt.system;
+        subSection.dataset.subProfile = opt.profile;
+        subSection.classList.remove('hidden');
+        // Reset toggle state
+        newRunSubEnabled = false;
+        subFormInline.classList.add('hidden');
+        document.getElementById('sub-run-toggle-icon').className = 'fas fa-plus text-[8px]';
+        document.getElementById('sub-run-toggle-text').textContent = 'Add';
+        document.getElementById('sub-dynamic-fields').innerHTML = '';
+        document.getElementById('sub-tx-select').value = '';
+    } else {
+        subSection.classList.add('hidden');
+        newRunSubEnabled = false;
+    }
+
+    // Direction selector for GP COLR
+    if (currentSystem === 'GP' && profile === 'COLR') {
+        const dirDiv = document.createElement('div');
+        dirDiv.className = 'mb-2';
+        dirDiv.innerHTML = `
+            <input type="hidden" id="field-colr_dir" name="colr_dir" value="LEFT" autocomplete="off">
+            <div class="flex gap-2">
+                <button type="button" id="dir-btn-left"
+                    onclick="setColrDir('LEFT')"
+                    class="flex-1 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all
+                           bg-blue-500 text-white shadow-sm">
+                    &#9664; LEFT 8&deg;
+                </button>
+                <button type="button" id="dir-btn-right"
+                    onclick="setColrDir('RIGHT')"
+                    class="flex-1 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all
+                           bg-slate-100 text-slate-400">
+                    RIGHT 8&deg; &#9654;
+                </button>
+            </div>`;
+        container.appendChild(dirDiv);
+    }
+
+    const keys = Object.keys(fields);
+
+    keys.forEach((key, idx) => {
+        const f = fields[key];
+        const isLast = idx === keys.length - 1;
+        const nextId = isLast ? 'submit-btn' : 'field-' + keys[idx + 1];
+
+        const div = document.createElement('div');
+        div.className = "horizontal-field group";
+
+        const isClearance = f.type === 'clearance';
+        const isAlignment = f.type === 'alignment';
+        const isZone      = f.type === 'zone';
+        const isCheckbox  = f.type === 'checkbox';
+        const hasToleranceSwitch = f.toleranceSwitch === true;
+
+        let inputHtml;
+        if (isCheckbox) {
+            inputHtml = `
+                <label class="flex items-center justify-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="field-${key}" name="${key}" value="PASS"
+                        onchange="validateCheckboxInput(this)"
+                        class="w-5 h-5 rounded-full accent-green-500 cursor-pointer" autocomplete="off">
+                    <span id="badge-cb-${key}" class="text-xs font-black text-slate-400">—</span>
+                </label>`;
+        } else if (isClearance) {
+            inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
+                placeholder="μA / °"
+                oninput="validateClearanceInput(this)"
+                onkeydown="handleSlashBackspace(event, '${nextId}')"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
+        } else if (isAlignment) {
+            inputHtml = `
+                <div class="flex items-center gap-2">
+                    <input type="number" step="any" id="field-${key}" name="${key}"
+                        oninput="validateAlignmentInput(this)"
+                        onkeydown="handleFieldEnter(event, '${nextId}')"
+                        class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
+                    <span id="badge-${key}" class="text-xs font-black w-6 text-slate-400">—</span>
+                </div>`;
+        } else if (isZone) {
+            inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
+                placeholder="μA / NM"
+                oninput="validateZoneInput(this,'${key}')"
+                onkeydown="handleSlashBackspace(event, '${nextId}')"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
+        } else {
+            inputHtml = `<input type="number" step="any" id="field-${key}" name="${key}"
+                oninput="validateInput(this,'${currentSystem}','${profile}','${key}')"
+                onkeydown="handleFieldEnter(event, '${nextId}')"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">`;
+        }
+
+        let tolHtml;
+        if (hasToleranceSwitch) {
+            tolHtml = `
+                <fieldset class="tol-fieldset">
+                    <div class="tol-radio">
+                        <input type="radio" id="tol-180-${key}" name="tol-switch-${key}" value="180" checked 
+                            onchange="handleToleranceSwitch(this, '${key}')" autocomplete="off">
+                        <label for="tol-180-${key}">180μA</label>
+                    </div>
+                    <div class="tol-radio">
+                        <input type="radio" id="tol-150-${key}" name="tol-switch-${key}" value="150"
+                            onchange="handleToleranceSwitch(this, '${key}')" autocomplete="off">
+                        <label for="tol-150-${key}">150μA</label>
+                    </div>
+                </fieldset>`;
+        } else {
+            tolHtml = `<span class="text-[9px] font-bold text-blue-500 bg-blue-50 px-1.5 py-1 rounded block text-center">${f.tol}</span>`;
+        }
+
+        div.innerHTML = `
+            <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${f.label}</span>
+            </div>
+            <div class="text-right">
+                ${tolHtml}
+            </div>
+            <div>${inputHtml}</div>`;
+
+        container.appendChild(div);
+    });
+}
+
+
+        document.getElementById('run-form').onsubmit = function(e) {
+    e.preventDefault();
+
+    const txSelect = document.getElementById('tx-select');
+    if (!txSelect.value) {
+        txSelect.classList.add('input-error');
+        setTimeout(() => txSelect.classList.remove('input-error'), 2000);
+        return;
+    }
+
+    const profile = document.getElementById('profile-select').value;
+    const tx = txSelect.value;
+    const fields = SYSTEMS[currentSystem]?.[profile] || {};
+
+    // ✅ Capture the entered values BEFORE showLoading() disables every
+    // input on the page — disabled fields are excluded from FormData.
+    // Also collect checkbox states here (before disabling) to be safe.
+    const formData = new FormData(this);
+
+    // Pre-collect checkbox values and tolerance switches NOW (before inputs are disabled by showLoading)
+    const checkboxValues = {};
+    const toleranceValues = {};
+    Object.keys(fields).forEach(key => {
+        if (fields[key]?.type === 'checkbox') {
+            const el = document.getElementById('field-' + key);
+            checkboxValues[key] = el?.checked ? 'PASS' : 'FAIL';
+            
+            // If this field has a tolerance switch, collect its value
+            if (fields[key]?.toleranceSwitch) {
+                toleranceValues[key + '_tol'] = toleranceSwitchValues[key] || 180;
+            }
+        }
+    });
+
+    // Validate sub-TX when sub-run form is open
+    if (newRunSubEnabled) {
+        const subTxEl = document.getElementById('sub-tx-select');
+        if (!subTxEl || !subTxEl.value) {
+            subTxEl.classList.add('input-error');
+            subTxEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => subTxEl.classList.remove('input-error'), 2000);
+            return;
+        }
+    }
+
+    showLoading(); // 🔥 เพิ่มตรงนี้
+
+    const btn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+
+    btn.disabled = true;
+    btnText.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> Saving...';
+
+    runCounter++;
+
+    const runData = {
+        id: Date.now(),
+        runNumber: runCounter,
+        systemType: currentSystem,
+        profile: profile,
+        transmitter: tx,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        values: {},
+        status: 'INITIAL'
+    };
+
+    // Apply pre-collected checkbox values
+    Object.assign(runData.values, checkboxValues);
+    
+    // Apply tolerance switch values
+    Object.assign(runData.values, toleranceValues);
+
+    // Collect main-run fields explicitly by ID (not FormData) to avoid
+    // sub-run fields (same name attributes) overwriting main values.
+    Object.keys(fields).forEach(key => {
+        const field = fields[key];
+        if (field?.type === 'checkbox') return; // already in checkboxValues
+        const el = document.getElementById('field-' + key);
+        if (!el) return;
+        if (key === 'colr_dir') {
+            runData.values[key] = el.value;
+        } else if (field?.type === 'clearance' || field?.type === 'zone') {
+            runData.values[key] = el.value.trim();
+        } else {
+            runData.values[key] = customRound(parseFloat(el.value), 2);
+        }
+    });
+    // colr_dir for GP COLR (hidden input)
+    if (currentSystem === 'GP' && profile === 'COLR') {
+        const dirEl = document.getElementById('field-colr_dir');
+        if (dirEl) runData.values['colr_dir'] = dirEl.value;
+    }
+
+    // Collect sub-run if enabled
+    const subRunData = collectNewRunSubData();
+    if (subRunData && subRunData !== 'MISSING_TX') {
+        console.log('✅ Sub-run data collected:', subRunData);
+        runData.subRuns = [subRunData];
+    } else {
+        console.log('❌ No sub-run data collected. newRunSubEnabled:', newRunSubEnabled);
+    }
+
+    // Fully offline — no server round-trip, just save locally.
+    setTimeout(() => {
+        try {
+            handleSuccess(runData);
+        } catch(err) {
+            console.error('Save error:', err);
+            runCounter--; // rollback counter
+        } finally {
+            hideLoading();
+        }
+    }, 300);
+};
+
+        function switchPage(page) {
+            const pageNew  = document.getElementById('page-new-run');
+            const pageList = document.getElementById('page-run-list');
+            const btnNew   = document.getElementById('btn-nav-new');
+            const btnList  = document.getElementById('btn-nav-list');
+            const activeClass   = ['bg-blue-500', 'text-white', 'shadow-md'];
+            const inactiveClass = ['text-slate-400'];
+
+            if (page === 'new') {
+                pageNew.classList.remove('hidden');
+                pageList.classList.add('hidden');
+                btnNew.classList.add(...activeClass);
+                btnNew.classList.remove(...inactiveClass);
+                btnList.classList.remove(...activeClass);
+                btnList.classList.add(...inactiveClass);
+            } else {
+                pageNew.classList.add('hidden');
+                pageList.classList.remove('hidden');
+                btnList.classList.add(...activeClass);
+                btnList.classList.remove(...inactiveClass);
+                btnNew.classList.remove(...activeClass);
+                btnNew.classList.add(...inactiveClass);
+                renderRuns();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateNavBadge() {
+            const badge = document.getElementById('nav-run-badge');
+            if (currentRuns.length > 0) {
+                badge.textContent = currentRuns.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function handleSuccess(runData) {
+            currentRuns.push({...runData});
+            saveToLocal();
+            updateNavBadge();
+            document.getElementById('run-form').reset();
+            newRunSubEnabled = false;
+            renderFields();
+            resetSubmitBtn();
+            switchPage('list');
+        }
+
+        function renderRuns() {
+            const container = document.getElementById('runs-container');
+            const countLabel = document.getElementById('run-count');
+            const emptyEl = document.getElementById('empty-runs');
+            countLabel.innerText = currentRuns.length;
+            if (emptyEl) emptyEl.classList.toggle('hidden', currentRuns.length > 0);
+            container.innerHTML = '';
+            
+            [...currentRuns].sort((a, b) => a.runNumber - b.runNumber).forEach((run) => {
+                // Wrapper div for main card
+                const wrapper = document.createElement('div');
+                wrapper.id = `run-card-${run.id}`;
+
+                const card = document.createElement('div');
+                card.className = "run-card bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4";
+                
+                let valHtml = '';
+                // ✅ Filter only main-run keys (from run.profile, not from sub-runs)
+                const fields = SYSTEMS[run.systemType]?.[run.profile] || {};
+                const mainRunKeys = Object.keys(fields);
+                const displayedKeys = mainRunKeys
+                    .filter(k => run.values.hasOwnProperty(k) && !k.endsWith('_tol') && k !== 'colr_dir');
+
+                for (const k of displayedKeys) {
+                    const raw = run.values[k];
+                    const field = getField(run.systemType, run.profile, k);
+
+                    let colorClass = '';
+                    let displayVal = raw;
+
+                    if (field?.type === 'checkbox') {
+                        const pass = raw === 'PASS';
+                        colorClass = pass ? 'text-green-600' : 'text-red-600';
+                        displayVal = raw;
+
+                        // OC tolerance
+                        if (run.systemType === 'GP' && run.profile === 'OC' && k === 'obs_clr') {
+                            const tol = run.values[k + '_tol'] ?? 180;
+                            displayVal = `${tol}μA / ${raw}`;
+                        }
+                    } else if (field?.type === 'clearance') {
+                        const parts = String(raw).split('/');
+                        const uA = parseFloat(parts[0]);
+                        const angle = parseFloat(parts[1]);
+                        const pass = !isNaN(uA) && !isNaN(angle) && uA >= 150 && angle >= 10 && angle <= 35;
+                        colorClass = pass ? 'text-green-600' : 'text-red-600';
+                    } else if (field?.type === 'zone') {
+                        const parts = String(raw).split('/');
+                        const uA = parseFloat(parts[0]);
+                        const nm = parseFloat(parts[1]);
+                        const pass = !isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+                        colorClass = pass ? 'text-green-600' : 'text-red-600';
+                    } else if (field?.type === 'alignment') {
+                        const val = parseFloat(raw);
+                        const pass = Math.abs(val) <= 5;
+                        const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
+                        colorClass = pass ? 'text-green-600' : 'text-red-600';
+                        displayVal = val === 0 ? 'C/L' : `${raw} ${dir}`;
+                    } else {
+                        const val = parseFloat(raw);
+                        colorClass = field
+                            ? (val >= field.min && val <= field.max ? 'text-green-600' : 'text-red-600')
+                            : '';
+                    }
+
+                    valHtml += `
+                        <div class="flex flex-col min-w-[75px]">
+                            <span class="text-[8px] text-slate-400 font-bold uppercase tracking-tighter">
+                                ${field?.label || k.replace(/_/g, ' ')}
+                            </span>
+                            <span class="font-bold text-xs ${colorClass}">${displayVal}</span>
+                        </div>`;
+                }
+
+                let statusColor = "text-gray-500";
+                if (run.status === "SAT") statusColor = "text-green-600";
+                if (run.status === "UNSAT") statusColor = "text-red-600";
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-slate-100 text-slate-700 rounded-full flex items-center justify-center border border-slate-200 font-black text-xs">${run.runNumber}</div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-1.5 py-0.5 bg-slate-800 text-white text-[8px] font-black rounded uppercase">${run.systemType}</span>
+                                <h4 class="font-bold text-slate-800 text-xs leading-none">${run.profile}</h4>
+                                <span class="px-1 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded">${run.transmitter}</span>
+                                ${run.systemType === 'GP' && run.profile === 'COLR' && run.values.colr_dir
+                                    ? `<span class="px-1.5 py-0.5 text-[8px] font-black rounded ${run.values.colr_dir === 'LEFT' ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}">${run.values.colr_dir === 'LEFT' ? '\u25C4' : '\u25BA'} ${run.values.colr_dir} 8\u00B0</span>`
+                                    : ''}
+                            </div>
+                            <span class="text-[8px] text-slate-400">${run.timestamp}</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-wrap gap-x-4 gap-y-2 md:pl-4 md:border-l border-slate-100">${valHtml}</div>
+                    <div class="flex flex-col items-end gap-2">
+                        <div class="flex items-center gap-1">
+                            <select onchange="updateRunStatus(${run.id}, this.value)"
+                                class="text-[8px] font-bold ${statusColor} border border-slate-200 rounded-full px-3 py-1 bg-white focus:outline-none">
+                                <option value="INITIAL" ${run.status === 'INITIAL' ? 'selected' : ''}>INITIAL</option>
+                                <option value="SAT"     ${run.status === 'SAT'     ? 'selected' : ''}>SAT</option>
+                                <option value="UNSAT"   ${run.status === 'UNSAT'   ? 'selected' : ''}>UNSAT</option>
+                            </select>
+                            <button type="button" onclick="deleteRun(${run.id})" title="Delete run" class="ml-1 text-slate-300 hover:text-red-500 transition-colors">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    </div>`;
+
+                wrapper.appendChild(card);
+
+                // ✅ Render existing sub-runs as separate cards
+                if (run.subRuns && run.subRuns.length > 0) {
+                    const subContainer = document.createElement('div');
+                    subContainer.className = 'pl-3 mt-1 space-y-1 border-l-2 border-purple-200 ml-4';
+                    subContainer.innerHTML = run.subRuns.map(sub => renderSubRunCard(sub, run.id)).join('');
+                    wrapper.appendChild(subContainer);
+                }
+
+                container.appendChild(wrapper);
+            });
+        }
+
+        function updateRunStatus(id, status) {
+    const run = currentRuns.find(r => r.id === id);
+    if (run) {
+        run.status = status;
+        saveToLocal(); // ✅ persist status change
+        renderRuns();
+    }
+}
+
+function exportReport() {
+    if (currentRuns.length === 0) {
+        alert('No runs recorded yet — add at least one run before exporting.');
+        return;
+    }
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let rowsHtml = '';
+    [...currentRuns].sort((a, b) => a.runNumber - b.runNumber).forEach(run => {
+        let valuesHtml = '';
+        for (const k in run.values) {
+            const val = parseFloat(run.values[k]);
+            const field = getField(run.systemType, run.profile, k);
+            const inTol = field ? (val >= field.min && val <= field.max) : null;
+            const cls = inTol === false ? 'val-fail-print' : '';
+            valuesHtml += `<div>${k.replace(/_/g, ' ')}: <span class="${cls}">${run.values[k]}</span></div>`;
+        }
+        rowsHtml += `
+            <tr>
+                <td>${run.runNumber}</td>
+                <td>${run.systemType}</td>
+                <td>${run.profile}</td>
+                <td>${run.transmitter}</td>
+                <td>${run.timestamp}</td>
+                <td>${valuesHtml}</td>
+                <td class="status-${run.status}">${run.status}</td>
+            </tr>`;
+    });
+
+    const html = `
+        <h1>ILS / DME Flight Inspection Report</h1>
+        <div class="report-meta">Generated: ${dateStr} ${timeStr}</div>
+        <h2>Station Information</h2>
+        <table>
+            <tr><th>ICAO / IDENT</th><td>${initialSettings.icao || ''} / ${initialSettings.ident || ''}</td></tr>
+            <tr><th>Category</th><td>${initialSettings.category || ''}</td></tr>
+            <tr><th>Comm. Width</th><td>${Number(initialSettings.width || 0).toFixed(2)}</td></tr>
+            <tr><th>Comm. Angle</th><td>${Number(initialSettings.angle || 0).toFixed(2)}</td></tr>
+        </table>
+        <h2>Flight Runs (${currentRuns.length})</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th><th>System</th><th>Profile</th><th>TX</th><th>Time</th><th>Values</th><th>Status</th>
+                </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+        </table>`;
+
+    document.getElementById('print-report').innerHTML = html;
+    window.print();
+}
+
+function deleteRun(id) {
+    if (!confirm('Delete this run? This cannot be undone.')) return;
+    currentRuns = currentRuns.filter(r => r.id !== id);
+    
+    // เรียงลำดับเลข runNumber ใหม่
+    currentRuns.sort((a, b) => a.runNumber - b.runNumber);
+    currentRuns.forEach((run, index) => {
+        run.runNumber = index + 1;
+    });
+    
+    // อัพเดท runCounter ให้เท่ากับจำนวน runs ที่เหลือ
+    runCounter = currentRuns.length;
+    
+    saveToLocal();
+    renderRuns();
+    updateNavBadge();
+}
+
+const BUNDLED_AIRPORTS = [{"icao":"VTBD","iden":"IBKD","airport":"BANGKOK AIRPORT 03L","runway":"03L","width":3.0,"angle":3.0,"category":"CAT I"},{"icao":"VTBD","iden":"IDMG","airport":"BANGKOK AIRPORT 21L","runway":"21L","width":3.6,"angle":3.0,"category":"CAT I"},{"icao":"VTBD","iden":"IBKK","airport":"BANGKOK AIRPORT 21R","runway":"21R","width":3.0,"angle":3.0,"category":"CAT I"},{"icao":"VTUO","iden":"IBRM","airport":"BURIRUM AIRPORT","runway":"04","width":4.7,"angle":3.0,"category":"CAT I"},{"icao":"VTCC","iden":"ICMA","airport":"CHIANG MAI AIRPORT","runway":"36","width":3.42,"angle":3.0,"category":"CAT I"},{"icao":"VTCT","iden":"ICTR","airport":"CHIANGRAI AIRPORT","runway":"3","width":3.7,"angle":3.0,"category":"CAT I"},{"icao":"VTSE","iden":"ICPN","airport":"CHOMPHON AIRPORT","runway":"24","width":5.1,"angle":3.0,"category":"CAT I"},{"icao":"VTSS","iden":"IHTY","airport":"HATYAI AIRPORT","runway":"26","width":3.35,"angle":3.0,"category":"CAT I"},{"icao":"VTBK","iden":"IKPS","airport":"KAMPHAENG SEAN AIRPORT","runway":"21","width":4.0,"angle":3.0,"category":"CAT I"},{"icao":"VTUN","iden":"IKRT","airport":"KHORAT AIRPORT","runway":"24","width":3.6,"angle":3.0,"category":"CAT I"},{"icao":"VTSG","iden":"IKBI","airport":"KRABI AIRPORT","runway":"32","width":3.7,"angle":3.2,"category":"CAT I"},{"icao":"VTCL","iden":"ILPN","airport":"LAMPANG AIRPORT","runway":"36","width":5.9,"angle":3.0,"category":"CAT I"},{"icao":"VTUQ","iden":"INKR","airport":"NAKHON RATCHASIMA AIRPORT","runway":"6","width":5.1,"angle":3.0,"category":"CAT I"},{"icao":"VTSF","iden":"INKS","airport":"NAKHON SI THAMARAT AIRPORT","runway":"19","width":5.1,"angle":3.0,"category":"CAT I"},{"icao":"VTUW","iden":"INKP","airport":"NAKHONPHANOM AIRPORT","runway":"15","width":4.4,"angle":3.0,"category":"CAT I"},{"icao":"VTCN","iden":"INAN","airport":"NAN AIRPORT","runway":"2","width":5.7,"angle":3.4,"category":"CAT I"},{"icao":"VTSC","iden":"INTW","airport":"NARATHIWAT AIRPORT","runway":"2","width":4.35,"angle":3.0,"category":"CAT I"},{"icao":"VTPB","iden":"IPCB","airport":"PHETCHABUN AIRPORT","runway":"36","width":5.1,"angle":3.0,"category":"CAT I"},{"icao":"VTPP","iden":"IPSL","airport":"PHITSANULOK AIRPORT","runway":"32","width":3.7,"angle":3.0,"category":"CAT I"},{"icao":"VTCP","iden":"IPAE","airport":"PHRAE AIRPORT","runway":"1","width":6.0,"angle":3.5,"category":"CAT I"},{"icao":"VTSP","iden":"IPKT","airport":"PHUKET AIRPORT","runway":"27","width":4.4,"angle":3.2,"category":"CAT I"},{"icao":"VTSR","iden":"IRAN","airport":"RANONG AIRPORT","runway":"2","width":5.3,"angle":3.0,"category":"CAT I"},{"icao":"VTUV","iden":"IROT","airport":"ROIET AIRPORT","runway":"36","width":5.1,"angle":3.0,"category":"CAT I"},{"icao":"VTUI","iden":"ISKN","airport":"SAKON NAKHON AIRPORT","runway":"23","width":4.35,"angle":3.0,"category":"CAT I"},{"icao":"VTPO","iden":"ISKT","airport":"SUKHOTHAI AIRPORT","runway":"36","width":5.2,"angle":3.0,"category":"CAT I"},{"icao":"VTSB","iden":"ISTN","airport":"SURATTHANI AIRPORT","runway":"22","width":3.7,"angle":3.0,"category":"CAT I"},{"icao":"VTBS","iden":"ISES","airport":"SUVARNABHUMI AIRPORT 01","runway":"1","width":3.0,"angle":3.0,"category":"CAT II"},{"icao":"VTBS","iden":"ISWS","airport":"SUVARNABHUMI AIRPORT 02R","runway":"02R","width":3.1,"angle":3.0,"category":"CAT II"},{"icao":"VTBS","iden":"ISWN","airport":"SUVARNABHUMI AIRPORT 20L","runway":"20L","width":3.1,"angle":3.0,"category":"CAT II"},{"icao":"VTBS","iden":"ISEN","airport":"SUVARNABHUMI AIRPORT 19","runway":"19","width":3.0,"angle":3.0,"category":"CAT II"},{"icao":"VTPI","iden":"ITKL","airport":"TAKHLI AIRPORT","runway":"18","width":3.7,"angle":3.0,"category":"CAT I"},{"icao":"VTST","iden":"ITRN","airport":"TRANG AIRPORT","runway":"8","width":5.1,"angle":3.5,"category":"CAT I"},{"icao":"VTBU","iden":"IBUT","airport":"U-TAPHAO AIRPORT","runway":"18","width":3.1,"angle":3.0,"category":"CAT I"},{"icao":"VTUU","iden":"IUBL","airport":"UBON AIRPORT","runway":"23","width":3.5,"angle":3.0,"category":"CAT I"},{"icao":"VTUD","iden":"IUDN","airport":"UDON AIRPORT","runway":"30","width":3.4,"angle":3.0,"category":"CAT I"},{"icao":"VTBL","iden":"ILOB","airport":"LOPBURI AIRPORT - WING 2","runway":"05","width":6.0,"angle":3.0,"category":"CAT I"}];
+
+let airportDB = [];
+let selectedAirport = null;
+const AIRPORT_CACHE_KEY = 'airportDB';
+
+// Airports are bundled directly into this file (BUNDLED_AIRPORTS).
+// localStorage cache can still override with an imported custom list.
+function loadAirports() {
+    const cachedData = localStorage.getItem(AIRPORT_CACHE_KEY);
+    if (cachedData) {
+        try {
+            const cached = JSON.parse(cachedData);
+            if (Array.isArray(cached) && cached.length > 0) {
+                airportDB = cached;
+                console.log(`✅ Loaded ${airportDB.length} airports from local cache`);
+                return;
+            }
+        } catch (e) {
+            localStorage.removeItem(AIRPORT_CACHE_KEY);
+        }
+    }
+    // Fall back to bundled data
+    airportDB = BUNDLED_AIRPORTS;
+    console.log(`✅ Loaded ${airportDB.length} airports from bundled data`);
+}
+
+function importAirportFile(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data)) throw new Error('not an array');
+
+            airportDB = data;
+            localStorage.setItem(AIRPORT_CACHE_KEY, JSON.stringify(data));
+            alert(`Imported ${data.length} airports. They are now saved on this device for offline use.`);
+        } catch (err) {
+            alert('Could not read that file. Expecting a JSON array like:\n[{"icao":"VTBS","iden":"BKK","airport":"Suvarnabhumi","width":3.00,"angle":3.00,"category":"CAT I"}]');
+        } finally {
+            input.value = '';
+        }
+    };
+    reader.readAsText(file);
+}
+
+function renderDropdown(list) {
+    const dropdown = document.getElementById('airport-dropdown');
+    dropdown.innerHTML = '';
+
+    if (list.length === 0) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    list.forEach(ap => {
+        const item = document.createElement('div');
+        item.className = "p-3 hover:bg-gray-100 cursor-pointer";
+
+        item.innerHTML = `
+            <div class="font-bold">${ap.icao} / ${ap.iden}</div>
+            <div class="text-sm text-gray-500">${ap.airport}</div>
+        `;
+
+        item.onclick = () => selectAirport(ap);
+
+        dropdown.appendChild(item);
+    });
+
+    dropdown.classList.remove('hidden');
+}
+
+function selectAirport(ap) {
+    selectedAirport = ap;
+
+    document.getElementById('airport-search').value = `${ap.icao} / ${ap.iden}`;
+    document.getElementById('airport-dropdown').classList.add('hidden');
+
+    document.getElementById('airport-name').innerText = ap.airport;
+
+    document.getElementById('init-width').value = Number(ap.width).toFixed(2);
+    document.getElementById('init-angle').value = Number(ap.angle).toFixed(2);
+
+    // ✅ เพิ่มตรงนี้
+    if (ap.category) {
+    const catEl = document.getElementById('init-category');
+    catEl.value = ap.category;
+    handleCategoryChange(catEl); // 👈 เพิ่มตรงนี้
+}
+
+    initialSettings.width = Number(ap.width).toFixed(2);
+    initialSettings.angle = Number(ap.angle).toFixed(2);
+
+    applyDynamicTolerance();
+}
+
+function formatDecimal(el) {
+    if (el.value === '') return;
+    el.value = Number(el.value).toFixed(2);
+}
+
+window.onload = function () {
+    loadAirports();
+
+    const resumed = loadFromLocal();
+
+    if (resumed && initialSettings.ident) {
+        // Pre-fill modal with saved values so user can confirm or change
+        document.getElementById('airport-search').value = `${initialSettings.icao} / ${initialSettings.ident}`;
+        document.getElementById('airport-name').innerText = initialSettings.airport || '';
+        document.getElementById('init-width').value = Number(initialSettings.width || 0).toFixed(2);
+        document.getElementById('init-angle').value = Number(initialSettings.angle || 0).toFixed(2);
+        const catEl = document.getElementById('init-category');
+        catEl.value = initialSettings.category || '';
+        handleCategoryChange(catEl);
+        toggleClearBtn();
+
+        // Restore selectedAirport so submit uses correct data
+        selectedAirport = {
+            icao: initialSettings.icao,
+            iden: initialSettings.ident,
+            airport: initialSettings.airport || '',
+            width: initialSettings.width,
+            angle: initialSettings.angle,
+            category: initialSettings.category
+        };
+    } else {
+        document.getElementById('init-category').value = '';
+        document.getElementById('init-width').value = '';
+        document.getElementById('init-angle').value = '';
+        handleCategoryChange(document.getElementById('init-category'));
+    }
+
+    if (resumed && initialSettings.ident) {
+        // Session exists — resume directly without showing modal
+        resumeSession();
+    } else {
+        // No session — show modal for first-time setup
+        renderProfileOptions();
+        document.getElementById('init-modal').classList.add('active');
+        setTimeout(() => document.getElementById('airport-search').focus(), 500);
+    }
+};
+
+function resumeSession() {
+    document.getElementById('display-ident').innerText = `${initialSettings.icao} / ${initialSettings.ident}`;
+    document.getElementById('display-airport').innerText = `${initialSettings.airport || ''} (${initialSettings.category || ''})`;
+    document.getElementById('display-width').innerText = Number(initialSettings.width || 0).toFixed(2);
+    document.getElementById('display-angle').innerText = Number(initialSettings.angle || 0).toFixed(2);
+
+    document.getElementById('header-info').classList.remove('opacity-0');
+    document.getElementById('init-modal').classList.remove('active');
+
+    applyDynamicTolerance();
+    renderProfileOptions();
+    renderFields();
+
+    updateNavBadge();
+    if (currentRuns.length > 0) {
+        renderRuns();
+    }
+}
+
+function changeAirport() {
+    document.getElementById('init-modal').classList.add('active');
+    setTimeout(() => document.getElementById('airport-search').focus(), 300);
+}
+
+function clearAirportInput() {
+    const input = document.getElementById('airport-search');
+    const dropdown = document.getElementById('airport-dropdown');
+
+    input.value = '';
+    dropdown.classList.add('hidden');
+
+    document.getElementById('airport-name').innerText = '';
+    document.getElementById('init-width').value = '';
+    document.getElementById('init-angle').value = '';
+
+    selectedAirport = null; // ✅ สำคัญมาก
+
+    initialSettings = { icao:'', ident: '', category:'', width: 0, angle: 0 };
+
+    const catEl = document.getElementById('init-category');
+    catEl.value = '';
+    handleCategoryChange(catEl);    
+    input.focus();
+    toggleClearBtn();
+    activeIndex = -1;
+}
+
+function handleAirportFocus(el) {
+    const keyword = el.value.trim();
+    if (keyword.length > 0) {
+        // Re-show filtered results for whatever is already typed
+        handleAirportSearch(keyword);
+    } else {
+        // Show first 20 airports so user can browse without flooding the list
+        if (airportDB.length === 0) return;
+        airportResults = airportDB.slice(0, 20);
+        activeIndex = 0;
+        renderAirportDropdown();
+    }
+}
+
+function handleAirportInput(el) {
+    let cleaned = el.value.toUpperCase().replace(/[^A-Z0-9 ]/g, '');
+    el.value = cleaned;
+
+    debounceSearch(() => {
+        handleAirportSearch(cleaned);
+    }, 250);
+
+    toggleClearBtn();
+}
+
+function toggleClearBtn() {
+    const input = document.getElementById('airport-search');
+    const btn = document.getElementById('clear-airport-btn');
+
+    if (input.value.length > 0) {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+}
+
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('airport-dropdown');
+    const input = document.getElementById('airport-search');
+
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+function handleAirportSearch(keyword) {
+    const dropdown = document.getElementById('airport-dropdown');
+
+    if (!keyword || airportDB.length === 0) {
+        dropdown.classList.add('hidden');
+        airportResults = [];
+        activeIndex = -1;
+        return;
+    }
+
+    const results = airportDB.filter(ap =>
+        (ap.icao && ap.icao.includes(keyword)) ||
+        (ap.iden && ap.iden.includes(keyword))
+    );
+
+    airportResults = results;
+    activeIndex = 0; // 👈 เริ่มที่ตัวแรก
+
+    renderAirportDropdown();
+}
+
+let activeIndex = -1;
+let airportResults = [];
+
+function handleAirportKeydown(e) {
+    if (airportResults.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIndex = (activeIndex + 1) % airportResults.length;
+        renderAirportDropdown();
+    }
+
+    else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIndex = (activeIndex - 1 + airportResults.length) % airportResults.length;
+        renderAirportDropdown();
+    }
+
+    else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeIndex >= 0) {
+            selectAirport(airportResults[activeIndex]);
+
+            setTimeout(() => {
+                document.getElementById('init-width').focus();
+            }, 50);
+        }
+    }
+}
+
+function saveToLocal() {
+    localStorage.setItem('runs', JSON.stringify(currentRuns));
+    localStorage.setItem('runCounter', String(runCounter));
+}
+
+// Returns true if a resumable session (station info) was found.
+function loadFromLocal() {
+    const initData = localStorage.getItem('initialSettings');
+    if (!initData) return false;
+
+    try {
+        initialSettings = JSON.parse(initData);
+    } catch (e) {
+        return false;
+    }
+
+    if (!initialSettings || !initialSettings.ident) return false;
+
+    document.getElementById('init-category').value = initialSettings.category || '';
+    document.getElementById('init-width').value = initialSettings.width || '';
+    document.getElementById('init-angle').value = initialSettings.angle || '';
+
+    const runsData = localStorage.getItem('runs');
+    if (runsData) {
+        try { currentRuns = JSON.parse(runsData) || []; } catch (e) { currentRuns = []; }
+    }
+    const counterData = localStorage.getItem('runCounter');
+    if (counterData) runCounter = parseInt(counterData, 10) || 0;
+
+    return true;
+}
+
+function saveInitialToLocal() {
+    localStorage.setItem('initialSettings', JSON.stringify(initialSettings));
+}
+
+function renderAirportDropdown() {
+    const dropdown = document.getElementById('airport-dropdown');
+
+    if (airportResults.length === 0) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    dropdown.innerHTML = airportResults.slice(0, 10).map((ap, i) => `
+        <div id="airport-item-${i}"
+             class="p-3 cursor-pointer border-b 
+             ${i === activeIndex ? 'bg-blue-100' : 'hover:bg-blue-50'}"
+             onclick="selectAirport(airportResults[${i}])">
+             
+            <div class="font-bold">${ap.icao} / ${ap.iden}</div>
+            <div class="text-xs text-gray-500">${ap.airport}</div>
+        </div>
+    `).join('');
+
+    dropdown.classList.remove('hidden');
+
+    scrollToActiveItem();
+}
+
+function scrollToActiveItem() {
+    const el = document.getElementById(`airport-item-${activeIndex}`);
+    if (el) {
+        el.scrollIntoView({
+            block: 'nearest'
+        });
+    }
+}
+
+let debounceTimer;
+
+function debounceSearch(callback, delay = 300) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(callback, delay);
+}
+
+function showLoading() {
+    document.getElementById('global-loading').classList.add('active');
+    document.body.classList.add('loading-lock');
+
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+}
+
+function hideLoading() {
+    document.getElementById('global-loading').classList.remove('active');
+    document.body.classList.remove('loading-lock');
+}
+
+function handleCategoryChange(el) {
+    if (el.value === '') {
+        el.classList.remove('text-slate-700');
+        el.classList.add('text-slate-400'); // placeholder
+    } else {
+        el.classList.remove('text-slate-400');
+        el.classList.add('text-slate-700'); // เลือกแล้ว
+    }
+}
+    </script>
+<!-- GLOBAL LOADING -->
+<div id="global-loading">
+    <div class="spinner"></div>
+</div>
+
+<!-- PRINT REPORT (built dynamically, only shown when printing/exporting) -->
+<div id="print-report"></div>
+</body>
+</html>

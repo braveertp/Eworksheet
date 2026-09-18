@@ -1,0 +1,326 @@
+[
+  {
+    "icao": "VTBD",
+    "iden": "IBKD",
+    "airport": "BANGKOK AIRPORT 03L",
+    "runway": "03L",
+    "width": 3.0,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTBD",
+    "iden": "IDMG",
+    "airport": "BANGKOK AIRPORT 21L",
+    "runway": "21L",
+    "width": 3.6,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTBD",
+    "iden": "IBKK",
+    "airport": "BANGKOK AIRPORT 21R",
+    "runway": "21R",
+    "width": 3.0,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUO",
+    "iden": "IBRM",
+    "airport": "BURIRUM AIRPORT",
+    "runway": "04",
+    "width": 4.7,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTCC",
+    "iden": "ICMA",
+    "airport": "CHIANG MAI AIRPORT",
+    "runway": "36",
+    "width": 3.42,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTCT",
+    "iden": "ICTR",
+    "airport": "CHIANGRAI AIRPORT",
+    "runway": "3",
+    "width": 3.7,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSE",
+    "iden": "ICPN",
+    "airport": "CHOMPHON AIRPORT",
+    "runway": "24",
+    "width": 5.1,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSS",
+    "iden": "IHTY",
+    "airport": "HATYAI AIRPORT",
+    "runway": "26",
+    "width": 3.35,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTBK",
+    "iden": "IKPS",
+    "airport": "KAMPHAENG SEAN AIRPORT",
+    "runway": "21",
+    "width": 4.0,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUN",
+    "iden": "IKRT",
+    "airport": "KHORAT AIRPORT",
+    "runway": "24",
+    "width": 3.6,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSG",
+    "iden": "IKBI",
+    "airport": "KRABI AIRPORT",
+    "runway": "32",
+    "width": 3.7,
+    "angle": 3.2,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTCL",
+    "iden": "ILPN",
+    "airport": "LAMPANG AIRPORT",
+    "runway": "36",
+    "width": 5.9,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUQ",
+    "iden": "INKR",
+    "airport": "NAKHON RATCHASIMA AIRPORT",
+    "runway": "6",
+    "width": 5.1,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSF",
+    "iden": "INKS",
+    "airport": "NAKHON SI THAMARAT AIRPORT",
+    "runway": "19",
+    "width": 5.1,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUW",
+    "iden": "INKP",
+    "airport": "NAKHONPHANOM AIRPORT",
+    "runway": "15",
+    "width": 4.4,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTCN",
+    "iden": "INAN",
+    "airport": "NAN AIRPORT",
+    "runway": "2",
+    "width": 5.7,
+    "angle": 3.4,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSC",
+    "iden": "INTW",
+    "airport": "NARATHIWAT AIRPORT",
+    "runway": "2",
+    "width": 4.35,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTPB",
+    "iden": "IPCB",
+    "airport": "PHETCHABUN AIRPORT",
+    "runway": "36",
+    "width": 5.1,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTPP",
+    "iden": "IPSL",
+    "airport": "PHITSANULOK AIRPORT",
+    "runway": "32",
+    "width": 3.7,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTCP",
+    "iden": "IPAE",
+    "airport": "PHRAE AIRPORT",
+    "runway": "1",
+    "width": 6.0,
+    "angle": 3.5,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSP",
+    "iden": "IPKT",
+    "airport": "PHUKET AIRPORT",
+    "runway": "27",
+    "width": 4.4,
+    "angle": 3.2,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSR",
+    "iden": "IRAN",
+    "airport": "RANONG AIRPORT",
+    "runway": "2",
+    "width": 5.3,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUV",
+    "iden": "IROT",
+    "airport": "ROIET AIRPORT",
+    "runway": "36",
+    "width": 5.1,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUI",
+    "iden": "ISKN",
+    "airport": "SAKON NAKHON AIRPORT",
+    "runway": "23",
+    "width": 4.35,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTPO",
+    "iden": "ISKT",
+    "airport": "SUKHOTHAI AIRPORT",
+    "runway": "36",
+    "width": 5.2,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTSB",
+    "iden": "ISTN",
+    "airport": "SURATTHANI AIRPORT",
+    "runway": "22",
+    "width": 3.7,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTBS",
+    "iden": "ISES",
+    "airport": "SUVARNABHUMI AIRPORT 01",
+    "runway": "1",
+    "width": 3.0,
+    "angle": 3.0,
+    "category": "CAT II"
+  },
+  {
+    "icao": "VTBS",
+    "iden": "ISWS",
+    "airport": "SUVARNABHUMI AIRPORT 02R",
+    "runway": "02R",
+    "width": 3.1,
+    "angle": 3.0,
+    "category": "CAT II"
+  },
+  {
+    "icao": "VTBS",
+    "iden": "ISWN",
+    "airport": "SUVARNABHUMI AIRPORT 20L",
+    "runway": "20L",
+    "width": 3.1,
+    "angle": 3.0,
+    "category": "CAT II"
+  },
+  {
+    "icao": "VTBS",
+    "iden": "ISEN",
+    "airport": "SUVARNABHUMI AIRPORT 19",
+    "runway": "19",
+    "width": 3.0,
+    "angle": 3.0,
+    "category": "CAT II"
+  },
+  {
+    "icao": "VTPI",
+    "iden": "ITKL",
+    "airport": "TAKHLI AIRPORT",
+    "runway": "18",
+    "width": 3.7,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTST",
+    "iden": "ITRN",
+    "airport": "TRANG AIRPORT",
+    "runway": "8",
+    "width": 5.1,
+    "angle": 3.5,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTBU",
+    "iden": "IBUT",
+    "airport": "U-TAPHAO AIRPORT",
+    "runway": "18",
+    "width": 3.1,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUU",
+    "iden": "IUBL",
+    "airport": "UBON AIRPORT",
+    "runway": "23",
+    "width": 3.5,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTUD",
+    "iden": "IUDN",
+    "airport": "UDON AIRPORT",
+    "runway": "30",
+    "width": 3.4,
+    "angle": 3.0,
+    "category": "CAT I"
+  },
+  {
+    "icao": "VTBL",
+    "iden": "ILOB",
+    "airport": "LOPBURI AIRPORT - WING 2",
+    "runway": "05",
+    "width": 6.0,
+    "angle": 3.0,
+    "category": "CAT I"
+  }
+]
