@@ -11,6 +11,20 @@ const PRECACHE_URLS = [
   './ils.html',
   './manifest.json',
   './airport.json',
+  // Assets
+  './assets/tailwind.css',
+  './assets/fontawesome.css',
+  './assets/fa-solid-900.woff2',
+  './assets/fa-regular-400.woff2',
+  './assets/fa-brands-400.woff2',
+  './assets/inter-latin-300-normal.woff2',
+  './assets/inter-latin-400-normal.woff2',
+  './assets/inter-latin-500-normal.woff2',
+  './assets/inter-latin-600-normal.woff2',
+  './assets/inter-latin-700-normal.woff2',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/icon.svg',
 ];
 
 /* ── Install: pre-cache everything ── */

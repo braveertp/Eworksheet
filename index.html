@@ -12,12 +12,53 @@
     <meta name="apple-mobile-web-app-title" content="E-Worksheet">
     <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
+    <!-- Local Assets -->
+    <link rel="stylesheet" href="./assets/fontawesome.css">
+    <link rel="stylesheet" href="./assets/tailwind.css">
+    <style>
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 300;
+            font-display: swap;
+            src: url('./assets/inter-latin-300-normal.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('./assets/inter-latin-400-normal.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 500;
+            font-display: swap;
+            src: url('./assets/inter-latin-500-normal.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 600;
+            font-display: swap;
+            src: url('./assets/inter-latin-600-normal.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url('./assets/inter-latin-700-normal.woff2') format('woff2');
+        }
+    </style>
+
     <style>
         /* ── Reset & Base ── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { -webkit-text-size-adjust: 100%; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background-color: #f8fafc;
             min-height: 100vh;
         }
