@@ -215,15 +215,12 @@
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(8px);
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
             z-index: 100;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 20px);
         }
         .modal-overlay.active {
             opacity: 1;
@@ -237,20 +234,9 @@
             padding: 2rem;
             transform: scale(0.9);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            margin: auto;
         }
         .modal-overlay.active .modal-content {
             transform: scale(1);
-        }
-        @media (max-height: 600px), (max-width: 480px) {
-            .modal-overlay {
-                align-items: flex-start;
-                padding-top: max(env(safe-area-inset-top, 0px), 16px);
-                padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
-            }
-            .modal-content {
-                margin: 0 auto;
-            }
         }
         
         optgroup {
