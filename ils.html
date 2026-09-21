@@ -1917,6 +1917,7 @@ function applyDynamicTolerance() {
             renderProfileOptions();
             renderFields();
             renderRuns(); // ✅ Display runs immediately after loading
+            updateNavBadge(); // ✅ FIX: Update badge count for new airport
             saveInitialToLocal();
         }
 
