@@ -3115,6 +3115,7 @@ window.onload = function () {
         document.getElementById('init-width').value = '';
         document.getElementById('init-angle').value = '';
         handleCategoryChange(document.getElementById('init-category'));
+        toggleClearBtn(); // ✅ FIX: ตั้งค่า X button ตอนเปิดครั้งแรก
     }
 
     if (resumed && initialSettings.ident) {
@@ -3149,6 +3150,7 @@ function resumeSession() {
 
 function changeAirport() {
     document.getElementById('init-modal').classList.add('active');
+    toggleClearBtn(); // ✅ FIX: sync ปุ่ม X กับ input ที่มีค่าอยู่แล้ว
     setTimeout(() => document.getElementById('airport-search').focus(), 300);
 }
 
