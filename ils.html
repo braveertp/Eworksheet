@@ -1916,6 +1916,7 @@ function applyDynamicTolerance() {
 
             renderProfileOptions();
             renderFields();
+            renderRuns(); // ✅ Display runs immediately after loading
             saveInitialToLocal();
         }
 
@@ -3057,15 +3058,23 @@ function selectAirport(ap) {
     document.getElementById('init-width').value = Number(ap.width).toFixed(2);
     document.getElementById('init-angle').value = Number(ap.angle).toFixed(2);
 
-    // ✅ เพิ่มตรงนี้
-    if (ap.category) {
-    const catEl = document.getElementById('init-category');
-    catEl.value = ap.category;
-    handleCategoryChange(catEl); // 👈 เพิ่มตรงนี้
-}
-
+    // ✅ FIX: อัปเดต initialSettings ด้วยข้อมูลสนามบินใหม่เพื่อให้โหลด runs ถูกต้อง
+    if (!initialSettings) {
+        initialSettings = {};
+    }
+    initialSettings.iden = ap.iden;
+    initialSettings.icao = ap.icao;
+    initialSettings.airport = ap.airport;
+    initialSettings.category = ap.category;
     initialSettings.width = Number(ap.width).toFixed(2);
     initialSettings.angle = Number(ap.angle).toFixed(2);
+
+    // ✅ Update category dropdown
+    if (ap.category) {
+        const catEl = document.getElementById('init-category');
+        catEl.value = ap.category;
+        handleCategoryChange(catEl);
+    }
 
     applyDynamicTolerance();
 }
