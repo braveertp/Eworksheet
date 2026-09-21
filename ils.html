@@ -1908,11 +1908,11 @@ function applyDynamicTolerance() {
             document.getElementById('header-info').classList.remove('opacity-0');
             document.getElementById('init-modal').classList.remove('active');
 
-            // Clear runs from previous station
-            currentRuns = [];
-            runCounter = 0;
-            localStorage.removeItem('runs');
-            localStorage.removeItem('runCounter');
+            // Load runs for the newly selected airport (each airport has its own key)
+            const savedRuns = localStorage.getItem(getRunsKey());
+            currentRuns = savedRuns ? (JSON.parse(savedRuns) || []) : [];
+            const savedCounter = localStorage.getItem(getCounterKey());
+            runCounter = savedCounter ? (parseInt(savedCounter, 10) || 0) : 0;
 
             renderProfileOptions();
             renderFields();
@@ -3261,9 +3261,18 @@ function handleAirportKeydown(e) {
     }
 }
 
+function getRunsKey() {
+    const ident = initialSettings?.ident || 'default';
+    return 'runs_' + ident;
+}
+function getCounterKey() {
+    const ident = initialSettings?.ident || 'default';
+    return 'runCounter_' + ident;
+}
+
 function saveToLocal() {
-    localStorage.setItem('runs', JSON.stringify(currentRuns));
-    localStorage.setItem('runCounter', String(runCounter));
+    localStorage.setItem(getRunsKey(), JSON.stringify(currentRuns));
+    localStorage.setItem(getCounterKey(), String(runCounter));
 }
 
 // Returns true if a resumable session (station info) was found.
@@ -3283,11 +3292,11 @@ function loadFromLocal() {
     document.getElementById('init-width').value = initialSettings.width || '';
     document.getElementById('init-angle').value = initialSettings.angle || '';
 
-    const runsData = localStorage.getItem('runs');
+    const runsData = localStorage.getItem(getRunsKey());
     if (runsData) {
         try { currentRuns = JSON.parse(runsData) || []; } catch (e) { currentRuns = []; }
     }
-    const counterData = localStorage.getItem('runCounter');
+    const counterData = localStorage.getItem(getCounterKey());
     if (counterData) runCounter = parseInt(counterData, 10) || 0;
 
     return true;
