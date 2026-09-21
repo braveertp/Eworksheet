@@ -448,7 +448,110 @@
     overflow: hidden; /* 🔥 กัน scroll */
 }
 
-/* ===== PRINT / EXPORT REPORT ===== */
+
+        /* ===== CUSTOM NUMPAD ===== */
+        #custom-numpad {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            background: #f1f5f9;
+            border-top: 1px solid #e2e8f0;
+            padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+            transform: translateY(100%);
+            transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+        #custom-numpad.open {
+            transform: translateY(0);
+        }
+        .numpad-display {
+            background: white;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: right;
+            min-height: 44px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .numpad-display-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+        .numpad-display-value {
+            flex: 1;
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .numpad-btn {
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            padding: 14px 0;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: background 0.1s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .numpad-btn:active {
+            transform: scale(0.94);
+            background: #e2e8f0;
+        }
+        .numpad-btn.operator {
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 22px;
+        }
+        .numpad-btn.operator:active { background: #bfdbfe; }
+        .numpad-btn.backspace {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        .numpad-btn.backspace:active { background: #fee2e2; }
+        .numpad-btn.confirm {
+            background: #0f172a;
+            color: white;
+            font-size: 14px;
+            letter-spacing: 0.04em;
+        }
+        .numpad-btn.confirm:active { background: #1e293b; }
+        .numpad-btn.slash-btn {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+        .numpad-btn.slash-btn:active { background: #dcfce7; }
+        .numpad-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* ===== PRINT / EXPORT REPORT ===== */
 #print-report { display: none; }
 
 @media print {
@@ -476,6 +579,15 @@
     #print-report .status-UNSAT { color: #dc2626; font-weight: 700; }
     #print-report .status-INITIAL { color: #64748b; font-weight: 700; }
     #print-report .val-fail-print { color: #dc2626; font-weight: 700; }
+    #print-report .val-pass-print { color: #059669; font-weight: 700; }
+    #print-report .subrun-row td { background: #f8fafc; }
+    #print-report .badge-system {
+        display: inline-block;
+        background: #1e293b; color: #fff;
+        font-size: 9px; font-weight: 800;
+        padding: 1px 5px; border-radius: 3px;
+        text-transform: uppercase;
+    }
     #print-report h1 { font-size: 18px; margin: 0 0 2px 0; }
     #print-report h2 { font-size: 13px; margin: 16px 0 4px 0; }
     #print-report .report-meta { font-size: 11px; color: #334155; margin-bottom: 4px; }
@@ -681,7 +793,7 @@
                         <div id="sub-run-form-inline" class="hidden bg-purple-50 border border-purple-200 rounded-2xl p-4">
                             <!-- Transmitter selector -->
                             <div class="mb-3 relative">
-                                <select id="sub-tx-select" onchange="onSubTxChange()" required
+                                <select id="sub-tx-select" onchange="onSubTxChange()"
                                     class="w-full py-2 px-4 bg-white border border-purple-200 focus:border-purple-400 rounded-full outline-none appearance-none text-sm font-semibold text-slate-700 pr-10">
                                     <option value="">-- Transmitter No. --</option>
                                     <option value="TX1">TX1</option>
@@ -886,7 +998,7 @@
         },
         AS: {
             modulation: { label: "Modulation", tol: "75.0 - 85.0%", min: 75.0, max: 85.0 },
-            angle: { label: "Path Angle*", tol: "Dynamic", min: 0, max: 0 },
+            angle: { label: "Path Angle", tol: "Dynamic", min: 0, max: 0 },
             zone1: { label: "Path Structure - Z1", tol: "≤±30μA / 11–4NM", type: "zone", maxUA: 30, nmMin: 4, nmMax: 11 },
             zone2: { label: "Path Structure - Z2", tol: "≤±30μA / 4–0.576NM", type: "zone", maxUA: 30, nmMin: 0.576, nmMax: 4 },
             zone3: { label: "Path Structure - Z3", tol: "≤±30μA / 0.576–0.3NM", type: "zone", maxUA: 30, nmMin: 0.3, nmMax: 0.576 }
@@ -1014,6 +1126,7 @@ function renderSubFields(containerId, system, profile, cid) {
                     <input type="number" step="any" id="${cid}-field-${key}" name="${key}"
                         oninput="validateSubAlignment(this, '${cid}', '${key}')"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
+                        data-allow-sign="true"
                         class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
                     <span id="${cid}-badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
                 </div>`;
@@ -1239,7 +1352,8 @@ function saveSubRun(runId, subSystem, subProfile, cid) {
         } else if (f?.type === 'clearance' || f?.type === 'zone') {
             subData.values[key] = el.value.trim();
         } else {
-            subData.values[key] = customRound(parseFloat(el.value), 2);
+            const raw = el.value.trim();
+            subData.values[key] = raw === '' ? '' : customRound(parseFloat(raw), 2);
         }
     });
 
@@ -1282,6 +1396,9 @@ function renderSubRunCard(sub, runId) {
 
         if (field?.type === 'checkbox') {
             colorClass = raw === 'PASS' ? 'text-green-600' : 'text-red-600';
+        } else if (raw === '' || raw === null || raw === undefined) {
+            displayVal = '—';
+            colorClass = 'text-slate-300';
         } else if (field?.type === 'clearance') {
             const parts = String(raw).split('/');
             const uA = parseFloat(parts[0]), angle = parseFloat(parts[1]);
@@ -1926,7 +2043,8 @@ function applyDynamicTolerance() {
                 } else if (f?.type === 'clearance' || f?.type === 'zone') {
                     subData.values[key] = el.value.trim();
                 } else {
-                    subData.values[key] = customRound(parseFloat(el.value), 2);
+                    const raw = el.value.trim();
+                    subData.values[key] = raw === '' ? '' : customRound(parseFloat(raw), 2);
                 }
             });
             // GP COLR dir
@@ -2044,6 +2162,7 @@ function applyDynamicTolerance() {
                     <input type="number" step="any" id="field-${key}" name="${key}"
                         oninput="validateAlignmentInput(this)"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
+                        data-allow-sign="true"
                         class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
                     <span id="badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
                 </div>`;
@@ -2177,7 +2296,8 @@ function applyDynamicTolerance() {
         } else if (field?.type === 'clearance' || field?.type === 'zone') {
             runData.values[key] = el.value.trim();
         } else {
-            runData.values[key] = customRound(parseFloat(el.value), 2);
+            const raw = el.value.trim();
+            runData.values[key] = raw === '' ? '' : customRound(parseFloat(raw), 2);
         }
     });
     // colr_dir for GP COLR (hidden input)
@@ -2296,6 +2416,9 @@ function applyDynamicTolerance() {
                             const tol = run.values[k + '_tol'] ?? 180;
                             displayVal = `${tol}μA / ${raw}`;
                         }
+                    } else if (raw === '' || raw === null || raw === undefined) {
+                        displayVal = '—';
+                        colorClass = 'text-slate-300';
                     } else if (field?.type === 'clearance') {
                         const parts = String(raw).split('/');
                         const uA = parseFloat(parts[0]);
@@ -2392,42 +2515,177 @@ function exportReport() {
         alert('No runs recorded yet — add at least one run before exporting.');
         return;
     }
+    // Pre-fill today's date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('export-insp-date').value = today;
+    // Reset due radio & preview
+    document.getElementById('export-due-180').checked = false;
+    document.getElementById('export-due-365').checked = false;
+    document.getElementById('export-due-preview').textContent = '';
+    updateDueLabels();
+    document.getElementById('export-modal').classList.add('active');
+}
+
+function closeExportModal() {
+    document.getElementById('export-modal').classList.remove('active');
+}
+
+function updateDueLabels() {
+    const inspDate = document.getElementById('export-insp-date').value;
+    const due180 = document.getElementById('export-due-180').checked;
+    const due365 = document.getElementById('export-due-365').checked;
+    const preview = document.getElementById('export-due-preview');
+
+    // Border highlight
+    document.getElementById('due-label-180').style.borderColor = due180 ? '#3b82f6' : 'transparent';
+    document.getElementById('due-label-365').style.borderColor = due365 ? '#3b82f6' : 'transparent';
+
+    if (!inspDate || (!due180 && !due365)) {
+        preview.textContent = '';
+        return;
+    }
+    const days = due180 ? 180 : 365;
+    const d = new Date(inspDate);
+    d.setDate(d.getDate() + days);
+    preview.textContent = `Due Date: ${d.toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' })}`;
+}
+
+// Also update preview when date input changes
+window.addEventListener('load', () => {
+    const dateEl = document.getElementById('export-insp-date');
+    if (dateEl) dateEl.addEventListener('input', updateDueLabels);
+});
+
+function confirmExport() {
+    const inspDateVal = document.getElementById('export-insp-date').value;
+    const due180 = document.getElementById('export-due-180').checked;
+    const due365 = document.getElementById('export-due-365').checked;
+
+    if (!inspDateVal) {
+        document.getElementById('export-insp-date').classList.add('input-error');
+        setTimeout(() => document.getElementById('export-insp-date').classList.remove('input-error'), 1500);
+        return;
+    }
+
+    closeExportModal();
+
+    const inspDate = new Date(inspDateVal);
+    const inspDateStr = inspDate.toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
+
+    let dueDateStr = '';
+    if (due180 || due365) {
+        const days = due180 ? 180 : 365;
+        const dueDate = new Date(inspDateVal);
+        dueDate.setDate(dueDate.getDate() + days);
+        dueDateStr = dueDate.toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
+    }
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const genStr = now.toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' })
+        + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Helper: render values cells for any run/sub object
+    function buildValuesHtml(systemType, profile, values) {
+        const fields = SYSTEMS[systemType]?.[profile] || {};
+        const keys = Object.keys(fields).filter(k => values.hasOwnProperty(k) && !k.endsWith('_tol') && k !== 'colr_dir');
+        if (keys.length === 0) return '<span style="color:#94a3b8">—</span>';
+        return keys.map(k => {
+            const raw = values[k];
+            const field = getField(systemType, profile, k);
+            const label = field?.label || k.replace(/_/g, ' ');
+
+            if (raw === '' || raw === null || raw === undefined) {
+                return `<div><span style="color:#94a3b8;font-size:10px">${label}:</span> <span style="color:#cbd5e1">—</span></div>`;
+            }
+
+            let displayVal = raw;
+            let cls = '';
+
+            if (field?.type === 'checkbox') {
+                cls = raw === 'PASS' ? 'val-pass-print' : 'val-fail-print';
+                if (systemType === 'GP' && profile === 'OC' && k === 'obs_clr') {
+                    const tol = values[k + '_tol'] ?? 180;
+                    displayVal = `${tol}μA / ${raw}`;
+                }
+            } else if (field?.type === 'clearance') {
+                const parts = String(raw).split('/');
+                const uA = parseFloat(parts[0]), angle = parseFloat(parts[1]);
+                const pass = !isNaN(uA) && !isNaN(angle) && uA >= 150 && angle >= 10 && angle <= 35;
+                cls = pass ? 'val-pass-print' : 'val-fail-print';
+            } else if (field?.type === 'zone') {
+                const parts = String(raw).split('/');
+                const uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
+                const pass = !isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+                cls = pass ? 'val-pass-print' : 'val-fail-print';
+            } else if (field?.type === 'alignment') {
+                const val = parseFloat(raw);
+                const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
+                cls = Math.abs(val) <= 5 ? 'val-pass-print' : 'val-fail-print';
+                displayVal = val === 0 ? 'C/L' : `${raw} ${dir}`;
+            } else {
+                const val = parseFloat(raw);
+                if (field && !isNaN(val)) {
+                    cls = (val >= field.min && val <= field.max) ? 'val-pass-print' : 'val-fail-print';
+                }
+            }
+            return `<div><span style="color:#64748b;font-size:10px">${label}:</span> <span class="${cls}">${displayVal}</span></div>`;
+        }).join('');
+    }
+
+    // Helper: colr direction badge text
+    function colrDirText(values) {
+        if (!values.colr_dir) return '';
+        return ` <span style="font-size:10px;color:#6366f1">${values.colr_dir === 'LEFT' ? '◄' : '►'} ${values.colr_dir} 8°</span>`;
+    }
 
     let rowsHtml = '';
     [...currentRuns].sort((a, b) => a.runNumber - b.runNumber).forEach(run => {
-        let valuesHtml = '';
-        for (const k in run.values) {
-            const val = parseFloat(run.values[k]);
-            const field = getField(run.systemType, run.profile, k);
-            const inTol = field ? (val >= field.min && val <= field.max) : null;
-            const cls = inTol === false ? 'val-fail-print' : '';
-            valuesHtml += `<div>${k.replace(/_/g, ' ')}: <span class="${cls}">${run.values[k]}</span></div>`;
-        }
+        const colrDir = (run.systemType === 'GP' && run.profile === 'COLR') ? colrDirText(run.values) : '';
         rowsHtml += `
             <tr>
-                <td>${run.runNumber}</td>
-                <td>${run.systemType}</td>
-                <td>${run.profile}</td>
-                <td>${run.transmitter}</td>
-                <td>${run.timestamp}</td>
-                <td>${valuesHtml}</td>
-                <td class="status-${run.status}">${run.status}</td>
+                <td style="text-align:center;font-weight:700">${run.runNumber}</td>
+                <td style="text-align:center"><span class="badge-system">${run.systemType}</span></td>
+                <td style="font-weight:600">${run.profile}${colrDir}</td>
+                <td style="text-align:center">${run.transmitter}</td>
+                <td style="text-align:center">${run.timestamp}</td>
+                <td>${buildValuesHtml(run.systemType, run.profile, run.values)}</td>
+                <td class="status-${run.status}" style="text-align:center;font-weight:700">${run.status}</td>
             </tr>`;
+
+        if (run.subRuns && run.subRuns.length > 0) {
+            run.subRuns.forEach(sub => {
+                const subColrDir = (sub.systemType === 'GP' && sub.profile === 'COLR') ? colrDirText(sub.values) : '';
+                rowsHtml += `
+                    <tr class="subrun-row">
+                        <td style="text-align:center;font-weight:700">↳</td>
+                        <td style="text-align:center"><span class="badge-system">${sub.systemType}</span></td>
+                        <td style="font-weight:600">${sub.profile}${subColrDir}</td>
+                        <td style="text-align:center">${sub.transmitter}</td>
+                        <td style="text-align:center">${sub.timestamp}</td>
+                        <td>${buildValuesHtml(sub.systemType, sub.profile, sub.values)}</td>
+                        <td class="status-${sub.status}" style="text-align:center;font-weight:700">${sub.status}</td>
+                    </tr>`;
+            });
+        }
     });
+
+    const dueDays = due180 ? 180 : due365 ? 365 : 0;
+    const dueDateRow = dueDateStr
+        ? `<tr><th>Due Date (${dueDays} days)</th><td style="font-weight:700;color:#dc2626">${dueDateStr}</td></tr>`
+        : '';
 
     const html = `
         <h1>ILS / DME Flight Inspection Report</h1>
-        <div class="report-meta">Generated: ${dateStr} ${timeStr}</div>
+        <div class="report-meta">Generated: ${genStr}</div>
         <h2>Station Information</h2>
         <table>
             <tr><th>ICAO / IDENT</th><td>${initialSettings.icao || ''} / ${initialSettings.ident || ''}</td></tr>
+            <tr><th>Airport</th><td>${initialSettings.airport || ''}</td></tr>
             <tr><th>Category</th><td>${initialSettings.category || ''}</td></tr>
             <tr><th>Comm. Width</th><td>${Number(initialSettings.width || 0).toFixed(2)}</td></tr>
             <tr><th>Comm. Angle</th><td>${Number(initialSettings.angle || 0).toFixed(2)}</td></tr>
+            <tr><th>Flight Inspection Date</th><td style="font-weight:700">${inspDateStr}</td></tr>
+            ${dueDateRow}
         </table>
         <h2>Flight Runs (${currentRuns.length})</h2>
         <table>
@@ -2850,7 +3108,206 @@ function handleCategoryChange(el) {
         el.classList.add('text-slate-700'); // เลือกแล้ว
     }
 }
+    
+// ===== CUSTOM NUMPAD ENGINE =====
+(function() {
+    let _activeInput = null;  // the real <input> element
+    let _numpadVal = '';      // string being built in numpad
+    let _allowSlash = false;
+    let _allowSign = false;   // + and -
+
+    const numpad = document.getElementById('custom-numpad');
+    const displayEl = document.getElementById('numpad-display-value');
+    const labelEl = document.getElementById('numpad-field-label');
+
+    function syncDisplay() {
+        displayEl.textContent = _numpadVal === '' ? '—' : _numpadVal;
+    }
+
+    function openNumpad(inputEl) {
+        _activeInput = inputEl;
+        _numpadVal = inputEl.value || '';
+
+        // Determine field type from placeholder or input id
+        const ph = (inputEl.placeholder || '').toLowerCase();
+        const id = (inputEl.id || '');
+        _allowSlash = ph.includes('/') || ph.includes('μa') || ph.includes('nm');
+        // alignment fields have "step any" and type number, allow sign if field is alignment
+        _allowSign = inputEl.dataset.numpadSign === '1' || 
+                     (inputEl.type === 'number' && id.includes('alignment')) ||
+                     (inputEl.type === 'number' && id.includes('field-alignment')) ||
+                     inputEl.dataset.allowSign === 'true';
+
+        // Update button states
+        document.getElementById('numpad-slash').disabled = !_allowSlash;
+        document.getElementById('numpad-plus').disabled  = !_allowSign;
+        document.getElementById('numpad-minus').disabled = !_allowSign;
+
+        // Field label
+        const hf = inputEl.closest('.horizontal-field');
+        if (hf) {
+            const lbl = hf.querySelector('.field-label span, span[class*="text-slate-400"]');
+            labelEl.textContent = lbl ? lbl.textContent.trim() : '';
+        } else {
+            labelEl.textContent = '';
+        }
+
+        syncDisplay();
+        numpad.classList.add('open');
+    }
+
+    function closeNumpad() {
+        numpad.classList.remove('open');
+        _activeInput = null;
+    }
+
+    window.numpadKey = function(k) {
+        if (!_activeInput) return;
+
+        if (k === '+' || k === '-') {
+            if (!_allowSign) return;
+            // Toggle sign at beginning
+            if (_numpadVal.startsWith('+')) {
+                _numpadVal = k === '-' ? '-' + _numpadVal.slice(1) : _numpadVal.slice(1);
+            } else if (_numpadVal.startsWith('-')) {
+                _numpadVal = k === '+' ? _numpadVal.slice(1) : _numpadVal;
+            } else {
+                _numpadVal = k === '-' ? '-' + _numpadVal : _numpadVal;
+            }
+            syncDisplay();
+            return;
+        }
+
+        if (k === '/') {
+            if (!_allowSlash || _numpadVal.includes('/')) return;
+            _numpadVal += '/';
+            syncDisplay();
+            return;
+        }
+
+        if (k === '.') {
+            // Allow dot only in the current "segment" (after last /)
+            const seg = _numpadVal.split('/').pop();
+            if (seg.includes('.')) return;
+        }
+
+        _numpadVal += k;
+        syncDisplay();
+    };
+
+    window.numpadBackspace = function() {
+        if (!_activeInput) return;
+        _numpadVal = _numpadVal.slice(0, -1);
+        syncDisplay();
+    };
+
+    window.numpadConfirm = function() {
+        if (!_activeInput) return;
+
+        const el = _activeInput;
+        const prev = el.value;
+        el.value = _numpadVal;
+
+        // Trigger proper oninput / onchange events so validation fires
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // For keydown-dependent slash auto-logic, also call the validator directly
+        if (el.oninput) {
+            // already fired above
+        }
+
+        closeNumpad();
+        el.blur();
+    };
+
+    // Intercept focus on any relevant input inside the form
+    document.addEventListener('focusin', function(e) {
+        const el = e.target;
+        // Only intercept text/number inputs inside .horizontal-field or the init modal numbers
+        const inHF = el.closest('.horizontal-field');
+        const isInitNum = (el.id === 'init-width' || el.id === 'init-angle');
+        if (!inHF && !isInitNum) return;
+        if (el.tagName !== 'INPUT') return;
+        if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'hidden') return;
+
+        e.preventDefault();
+        el.blur(); // prevent system keyboard
+        setTimeout(() => openNumpad(el), 10);
+    }, true);
+
+    // Close when tapping outside
+    document.addEventListener('pointerdown', function(e) {
+        if (!numpad.classList.contains('open')) return;
+        if (!numpad.contains(e.target)) {
+            numpadConfirm(); // commit on outside tap
+        }
+    }, true);
+
+    // Mark alignment inputs for sign support
+    function markAlignmentInputs() {
+        document.querySelectorAll('input[id*="field-alignment"], input[id*="field-angle"]').forEach(el => {
+            el.dataset.allowSign = 'true';
+        });
+    }
+
+    // Re-mark after dynamic fields render
+    const origRenderFields = window.renderFields;
+    if (origRenderFields) {
+        window.renderFields = function() {
+            origRenderFields.apply(this, arguments);
+            setTimeout(markAlignmentInputs, 50);
+        };
+    }
+    const origRenderSubFields = window.renderSubFields;
+    if (origRenderSubFields) {
+        window.renderSubFields = function() {
+            origRenderSubFields.apply(this, arguments);
+            setTimeout(markAlignmentInputs, 50);
+        };
+    }
+})();
+
     </script>
+<!-- EXPORT DATE MODAL -->
+<div id="export-modal" class="modal-overlay">
+    <div class="modal-content shadow-2xl" style="max-width:360px">
+        <div class="text-center mb-5">
+            <h2 class="text-lg font-black text-slate-800">EXPORT REPORT</h2>
+            <p class="text-[11px] text-slate-400 mt-1">Set inspection date before printing</p>
+        </div>
+        <div class="space-y-4">
+            <!-- Flight Inspection Date -->
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Flight Inspection Date</label>
+                <input type="date" id="export-insp-date"
+                    class="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-full outline-none focus:border-blue-500 font-semibold text-slate-700 text-sm">
+            </div>
+            <!-- Due Date -->
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Due Date</label>
+                <div class="flex gap-3">
+                    <label class="flex items-center gap-2 flex-1 bg-slate-50 border-2 border-transparent rounded-2xl px-4 py-3 cursor-pointer transition-all hover:border-blue-200" id="due-label-180">
+                        <input type="radio" name="export-due" value="180" id="export-due-180" class="accent-blue-500" onchange="updateDueLabels()">
+                        <span class="text-sm font-bold text-slate-700">180 days</span>
+                    </label>
+                    <label class="flex items-center gap-2 flex-1 bg-slate-50 border-2 border-transparent rounded-2xl px-4 py-3 cursor-pointer transition-all hover:border-blue-200" id="due-label-365">
+                        <input type="radio" name="export-due" value="365" id="export-due-365" class="accent-blue-500" onchange="updateDueLabels()">
+                        <span class="text-sm font-bold text-slate-700">365 days</span>
+                    </label>
+                </div>
+                <div id="export-due-preview" class="mt-2 ml-1 text-[11px] text-slate-400 font-semibold min-h-[16px]"></div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button onclick="closeExportModal()" class="flex-1 py-3 rounded-full font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 active:scale-95 transition-all text-sm">Cancel</button>
+            <button onclick="confirmExport()" class="flex-1 py-3 rounded-full font-bold text-white bg-slate-900 hover:bg-slate-800 active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
+                <i class="fas fa-file-export text-xs"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- GLOBAL LOADING -->
 <div id="global-loading">
     <div class="spinner"></div>
@@ -2858,5 +3315,36 @@ function handleCategoryChange(el) {
 
 <!-- PRINT REPORT (built dynamically, only shown when printing/exporting) -->
 <div id="print-report"></div>
+
+<!-- CUSTOM NUMPAD -->
+<div id="custom-numpad">
+    <div class="numpad-display">
+        <span class="numpad-display-label" id="numpad-field-label"></span>
+        <span class="numpad-display-value" id="numpad-display-value">—</span>
+    </div>
+    <div class="numpad-grid">
+        <!-- Row 1 -->
+        <button type="button" class="numpad-btn operator" id="numpad-plus" onclick="numpadKey('+')">+</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('7')">7</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('8')">8</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('9')">9</button>
+        <!-- Row 2 -->
+        <button type="button" class="numpad-btn operator" id="numpad-minus" onclick="numpadKey('-')">−</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('4')">4</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('5')">5</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('6')">6</button>
+        <!-- Row 3 -->
+        <button type="button" class="numpad-btn slash-btn" id="numpad-slash" onclick="numpadKey('/')">／</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('1')">1</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('2')">2</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('3')">3</button>
+        <!-- Row 4 -->
+        <button type="button" class="numpad-btn backspace" onclick="numpadBackspace()">⌫</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('0')">0</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('.')">.</button>
+        <button type="button" class="numpad-btn confirm" onclick="numpadConfirm()">DONE</button>
+    </div>
+</div>
+
 </body>
 </html>
