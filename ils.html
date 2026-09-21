@@ -206,6 +206,15 @@
             }
         }
 
+        /* Fix: date input overflow on mobile browsers */
+        input[type="date"] {
+            box-sizing: border-box;
+            min-width: 0;
+            max-width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -221,8 +230,6 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
-            align-items: flex-start;
-            padding: max(env(safe-area-inset-top), 1rem) 0 1rem;
         }
         .modal-overlay.active {
             opacity: 1;
@@ -236,9 +243,6 @@
             padding: 2rem;
             transform: scale(0.9);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            max-height: 90dvh;       /* จำกัดความสูงไม่เกิน viewport */
-            overflow-y: auto;        /* scroll ได้ถ้า content ล้น */
-            -webkit-overflow-scrolling: touch;
         }
         .modal-overlay.active .modal-content {
             transform: scale(1);
@@ -3199,7 +3203,7 @@ function handleCategoryChange(el) {
     </script>
 <!-- EXPORT DATE MODAL -->
 <div id="export-modal" class="modal-overlay">
-    <div class="modal-content shadow-2xl" style="max-width:360px">
+    <div class="modal-content shadow-2xl" style="max-width:360px; width:calc(100vw - 48px); box-sizing:border-box; overflow:hidden;">
         <div class="text-center mb-5">
             <h2 class="text-lg font-black text-slate-800">EXPORT REPORT</h2>
             <p class="text-[11px] text-slate-400 mt-1">Set inspection date before printing</p>
@@ -3209,7 +3213,8 @@ function handleCategoryChange(el) {
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Flight Inspection Date</label>
                 <input type="date" id="export-insp-date"
-                    class="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-full outline-none focus:border-blue-500 font-semibold text-slate-700 text-sm">
+                    class="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-full outline-none focus:border-blue-500 font-semibold text-slate-700 text-sm"
+                    style="box-sizing:border-box; min-width:0; max-width:100%; -webkit-appearance:none; appearance:none;">
             </div>
             <!-- Due Date -->
             <div>
