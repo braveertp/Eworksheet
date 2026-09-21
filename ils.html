@@ -259,6 +259,13 @@
             background-color: #fef2f2 !important;
         }
 
+        /* จำลอง focus ring เมื่อ numpad เปิดอยู่ */
+        .numpad-active-input {
+            outline: 2px solid #3b82f6 !important;
+            outline-offset: 1px !important;
+            border-color: #3b82f6 !important;
+        }
+
         /* Bottom pill nav responsive */
         .bottom-nav-btn {
             font-size: 14px !important;
@@ -495,7 +502,7 @@
         .numpad-btn.np-slash:active { background: #bfdbfe; }
         .numpad-btn.np-clear { background: #f9c6bc; color: #3f1414; font-size: 18px; font-weight: 800; }
         .numpad-btn.np-clear:active { background: #3a1918; }
-        .numpad-btn:disabled { opacity: 0.3; pointer-events: none; font-weight: 800; }
+        .numpad-btn:disabled { opacity: 0.3; pointer-events: none;}
         
         /* Tall buttons (span 2 rows) */
         .numpad-minus-tall { grid-row: span 2; }
@@ -3108,11 +3115,13 @@ function handleCategoryChange(el) {
             elById('numpad-minus').disabled = !_allowSign;
 
             elById('custom-numpad').classList.add('open');
+            input.classList.add('numpad-active-input');
         }
 
         function closeNumpad() {
             elById('custom-numpad').classList.remove('open');
             if (_active) {
+                _active.classList.remove('numpad-active-input');
                 _active.dispatchEvent(new Event('change', {bubbles: true}));
                 _active = null;
             }
