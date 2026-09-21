@@ -452,20 +452,16 @@
         /* ===== CUSTOM NUMPAD ===== */
         #custom-numpad {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             z-index: 200;
             background: #f1f5f9;
             border-top: 1px solid #e2e8f0;
             padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;
-            box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
             transform: translateY(100%);
             transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
         }
-        #custom-numpad.open {
-            transform: translateY(0);
-        }
+        #custom-numpad.open { transform: translateY(0); }
         .numpad-display {
             background: white;
             border: 1.5px solid #cbd5e1;
@@ -478,12 +474,10 @@
             min-height: 44px;
             margin-bottom: 8px;
             letter-spacing: 1px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            overflow: hidden;
         }
         .numpad-display-label {
             font-size: 9px;
@@ -499,6 +493,7 @@
             text-align: right;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .numpad-grid {
             display: grid;
@@ -519,39 +514,18 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
-        .numpad-btn:active {
-            transform: scale(0.94);
-            background: #e2e8f0;
-        }
-        .numpad-btn.operator {
-            background: #dbeafe;
-            color: #1d4ed8;
-            font-size: 22px;
-        }
-        .numpad-btn.operator:active { background: #bfdbfe; }
-        .numpad-btn.backspace {
-            background: #fef2f2;
-            color: #ef4444;
-        }
-        .numpad-btn.backspace:active { background: #fee2e2; }
-        .numpad-btn.confirm {
-            background: #0f172a;
-            color: white;
-            font-size: 14px;
-            letter-spacing: 0.04em;
-        }
-        .numpad-btn.confirm:active { background: #1e293b; }
-        .numpad-btn.slash-btn {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-        .numpad-btn.slash-btn:active { background: #dcfce7; }
-        .numpad-btn:disabled {
-            opacity: 0.3;
-            pointer-events: none;
-        }
+        .numpad-btn:active { transform: scale(0.94); background: #e2e8f0; }
+        .numpad-btn.np-operator { background: #dbeafe; color: #1d4ed8; font-size: 22px; }
+        .numpad-btn.np-operator:active { background: #bfdbfe; }
+        .numpad-btn.np-backspace { background: #fef2f2; color: #ef4444; }
+        .numpad-btn.np-backspace:active { background: #fee2e2; }
+        .numpad-btn.np-confirm { background: #0f172a; color: white; font-size: 14px; }
+        .numpad-btn.np-confirm:active { background: #1e293b; }
+        .numpad-btn.np-slash { background: #f0fdf4; color: #16a34a; }
+        .numpad-btn.np-slash:active { background: #dcfce7; }
+        .numpad-btn:disabled { opacity: 0.3; pointer-events: none; }
 
-        /* ===== PRINT / EXPORT REPORT ===== */
+/* ===== PRINT / EXPORT REPORT ===== */
 #print-report { display: none; }
 
 @media print {
@@ -3109,164 +3083,123 @@ function handleCategoryChange(el) {
     }
 }
     
-// ===== CUSTOM NUMPAD ENGINE =====
-(function() {
-    let _activeInput = null;  // the real <input> element
-    let _numpadVal = '';      // string being built in numpad
-    let _allowSlash = false;
-    let _allowSign = false;   // + and -
+    // ===== CUSTOM NUMPAD ENGINE =====
+    (function() {
+        var _active = null;
+        var _val = '';
+        var _allowSlash = false;
+        var _allowSign  = false;
 
-    const numpad = document.getElementById('custom-numpad');
-    const displayEl = document.getElementById('numpad-display-value');
-    const labelEl = document.getElementById('numpad-field-label');
+        function el(id) { return document.getElementById(id); }
 
-    function syncDisplay() {
-        displayEl.textContent = _numpadVal === '' ? '—' : _numpadVal;
-    }
-
-    function openNumpad(inputEl) {
-        _activeInput = inputEl;
-        _numpadVal = inputEl.value || '';
-
-        // Determine field type from placeholder or input id
-        const ph = (inputEl.placeholder || '').toLowerCase();
-        const id = (inputEl.id || '');
-        _allowSlash = ph.includes('/') || ph.includes('μa') || ph.includes('nm');
-        // alignment fields have "step any" and type number, allow sign if field is alignment
-        _allowSign = inputEl.dataset.numpadSign === '1' || 
-                     (inputEl.type === 'number' && id.includes('alignment')) ||
-                     (inputEl.type === 'number' && id.includes('field-alignment')) ||
-                     inputEl.dataset.allowSign === 'true';
-
-        // Update button states
-        document.getElementById('numpad-slash').disabled = !_allowSlash;
-        document.getElementById('numpad-plus').disabled  = !_allowSign;
-        document.getElementById('numpad-minus').disabled = !_allowSign;
-
-        // Field label
-        const hf = inputEl.closest('.horizontal-field');
-        if (hf) {
-            const lbl = hf.querySelector('.field-label span, span[class*="text-slate-400"]');
-            labelEl.textContent = lbl ? lbl.textContent.trim() : '';
-        } else {
-            labelEl.textContent = '';
+        function syncDisplay() {
+            var dv = el('numpad-display-value');
+            if (dv) dv.textContent = _val === '' ? '—' : _val;
         }
 
-        syncDisplay();
-        numpad.classList.add('open');
-    }
+        function openNumpad(input) {
+            _active = input;
+            _val = input.value || '';
 
-    function closeNumpad() {
-        numpad.classList.remove('open');
-        _activeInput = null;
-    }
+            var ph = (input.placeholder || '').toLowerCase();
+            _allowSlash = ph.indexOf('/') >= 0 || ph.indexOf('\u03bca') >= 0 || ph.indexOf('nm') >= 0;
+            _allowSign  = input.dataset.allowSign === 'true';
 
-    window.numpadKey = function(k) {
-        if (!_activeInput) return;
+            el('numpad-slash').disabled  = !_allowSlash;
+            el('numpad-plus').disabled   = !_allowSign;
+            el('numpad-minus').disabled  = !_allowSign;
 
-        if (k === '+' || k === '-') {
-            if (!_allowSign) return;
-            // Toggle sign at beginning
-            if (_numpadVal.startsWith('+')) {
-                _numpadVal = k === '-' ? '-' + _numpadVal.slice(1) : _numpadVal.slice(1);
-            } else if (_numpadVal.startsWith('-')) {
-                _numpadVal = k === '+' ? _numpadVal.slice(1) : _numpadVal;
-            } else {
-                _numpadVal = k === '-' ? '-' + _numpadVal : _numpadVal;
+            // Label from closest horizontal-field
+            var hf = input.closest('.horizontal-field');
+            var lbl = el('numpad-field-label');
+            if (lbl) {
+                if (hf) {
+                    var sp = hf.querySelector('span.text-\\[10px\\]');
+                    if (!sp) sp = hf.querySelector('div.field-label span');
+                    if (!sp) sp = hf.querySelector('span');
+                    lbl.textContent = sp ? sp.textContent.trim() : '';
+                } else {
+                    lbl.textContent = input.placeholder || '';
+                }
             }
+
             syncDisplay();
-            return;
+            el('custom-numpad').classList.add('open');
         }
 
-        if (k === '/') {
-            if (!_allowSlash || _numpadVal.includes('/')) return;
-            _numpadVal += '/';
+        function closeNumpad() {
+            el('custom-numpad').classList.remove('open');
+            _active = null;
+        }
+
+        window.numpadKey = function(k) {
+            if (!_active) return;
+            if (k === '+' || k === '-') {
+                if (!_allowSign) return;
+                if (_val.startsWith('-')) {
+                    _val = k === '+' ? _val.slice(1) : _val;
+                } else {
+                    _val = k === '-' ? '-' + _val : _val;
+                }
+                syncDisplay(); return;
+            }
+            if (k === '/') {
+                if (!_allowSlash || _val.indexOf('/') >= 0) return;
+                _val += '/'; syncDisplay(); return;
+            }
+            if (k === '.') {
+                var seg = _val.split('/').pop();
+                if (seg.indexOf('.') >= 0) return;
+            }
+            _val += k;
             syncDisplay();
-            return;
-        }
-
-        if (k === '.') {
-            // Allow dot only in the current "segment" (after last /)
-            const seg = _numpadVal.split('/').pop();
-            if (seg.includes('.')) return;
-        }
-
-        _numpadVal += k;
-        syncDisplay();
-    };
-
-    window.numpadBackspace = function() {
-        if (!_activeInput) return;
-        _numpadVal = _numpadVal.slice(0, -1);
-        syncDisplay();
-    };
-
-    window.numpadConfirm = function() {
-        if (!_activeInput) return;
-
-        const el = _activeInput;
-        const prev = el.value;
-        el.value = _numpadVal;
-
-        // Trigger proper oninput / onchange events so validation fires
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-
-        // For keydown-dependent slash auto-logic, also call the validator directly
-        if (el.oninput) {
-            // already fired above
-        }
-
-        closeNumpad();
-        el.blur();
-    };
-
-    // Intercept focus on any relevant input inside the form
-    document.addEventListener('focusin', function(e) {
-        const el = e.target;
-        // Only intercept text/number inputs inside .horizontal-field or the init modal numbers
-        const inHF = el.closest('.horizontal-field');
-        const isInitNum = (el.id === 'init-width' || el.id === 'init-angle');
-        if (!inHF && !isInitNum) return;
-        if (el.tagName !== 'INPUT') return;
-        if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'hidden') return;
-
-        e.preventDefault();
-        el.blur(); // prevent system keyboard
-        setTimeout(() => openNumpad(el), 10);
-    }, true);
-
-    // Close when tapping outside
-    document.addEventListener('pointerdown', function(e) {
-        if (!numpad.classList.contains('open')) return;
-        if (!numpad.contains(e.target)) {
-            numpadConfirm(); // commit on outside tap
-        }
-    }, true);
-
-    // Mark alignment inputs for sign support
-    function markAlignmentInputs() {
-        document.querySelectorAll('input[id*="field-alignment"], input[id*="field-angle"]').forEach(el => {
-            el.dataset.allowSign = 'true';
-        });
-    }
-
-    // Re-mark after dynamic fields render
-    const origRenderFields = window.renderFields;
-    if (origRenderFields) {
-        window.renderFields = function() {
-            origRenderFields.apply(this, arguments);
-            setTimeout(markAlignmentInputs, 50);
         };
-    }
-    const origRenderSubFields = window.renderSubFields;
-    if (origRenderSubFields) {
-        window.renderSubFields = function() {
-            origRenderSubFields.apply(this, arguments);
-            setTimeout(markAlignmentInputs, 50);
+
+        window.numpadBackspace = function() {
+            if (!_active) return;
+            _val = _val.slice(0, -1);
+            syncDisplay();
         };
-    }
-})();
+
+        window.numpadConfirm = function() {
+            if (!_active) return;
+            var inp = _active;
+            inp.value = _val;
+            // Fire input event so existing validators run
+            inp.dispatchEvent(new Event('input', {bubbles:true}));
+            inp.dispatchEvent(new Event('change', {bubbles:true}));
+            closeNumpad();
+        };
+
+        // Intercept focus on number/text inputs inside form fields
+        document.addEventListener('focusin', function(e) {
+            var inp = e.target;
+            if (!inp || inp.tagName !== 'INPUT') return;
+            if (inp.type === 'checkbox' || inp.type === 'radio' ||
+                inp.type === 'hidden'   || inp.type === 'file'  ||
+                inp.type === 'date') return;
+            // Only fields inside .horizontal-field or the init modal number fields
+            var inHF  = !!inp.closest('.horizontal-field');
+            var isInit = inp.id === 'init-width' || inp.id === 'init-angle';
+            if (!inHF && !isInit) return;
+
+            // Prevent system keyboard
+            inp.setAttribute('readonly', 'readonly');
+            inp.blur();
+            inp.removeAttribute('readonly');
+
+            setTimeout(function() { openNumpad(inp); }, 20);
+        }, true);
+
+        // Tap outside numpad = confirm
+        document.addEventListener('pointerdown', function(e) {
+            if (!el('custom-numpad').classList.contains('open')) return;
+            if (!el('custom-numpad').contains(e.target)) {
+                numpadConfirm();
+            }
+        }, true);
+
+    })();
 
     </script>
 <!-- EXPORT DATE MODAL -->
@@ -3320,29 +3253,28 @@ function handleCategoryChange(el) {
 <div id="custom-numpad">
     <div class="numpad-display">
         <span class="numpad-display-label" id="numpad-field-label"></span>
-        <span class="numpad-display-value" id="numpad-display-value">—</span>
+        <span class="numpad-display-value" id="numpad-display-value">&mdash;</span>
     </div>
     <div class="numpad-grid">
-        <!-- Row 1 -->
-        <button type="button" class="numpad-btn operator" id="numpad-plus" onclick="numpadKey('+')">+</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('7')">7</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('8')">8</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('9')">9</button>
-        <!-- Row 2 -->
-        <button type="button" class="numpad-btn operator" id="numpad-minus" onclick="numpadKey('-')">−</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('4')">4</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('5')">5</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('6')">6</button>
-        <!-- Row 3 -->
-        <button type="button" class="numpad-btn slash-btn" id="numpad-slash" onclick="numpadKey('/')">／</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('1')">1</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('2')">2</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('3')">3</button>
-        <!-- Row 4 -->
-        <button type="button" class="numpad-btn backspace" onclick="numpadBackspace()">⌫</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('0')">0</button>
-        <button type="button" class="numpad-btn" onclick="numpadKey('.')">.</button>
-        <button type="button" class="numpad-btn confirm" onclick="numpadConfirm()">DONE</button>
+        <button type="button" class="numpad-btn np-operator" id="numpad-plus"  onclick="numpadKey('+')">+</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('7')">7</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('8')">8</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('9')">9</button>
+
+        <button type="button" class="numpad-btn np-operator" id="numpad-minus" onclick="numpadKey('-')">&minus;</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('4')">4</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('5')">5</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('6')">6</button>
+
+        <button type="button" class="numpad-btn np-slash"    id="numpad-slash" onclick="numpadKey('/')">/</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('1')">1</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('2')">2</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('3')">3</button>
+
+        <button type="button" class="numpad-btn np-backspace"                   onclick="numpadBackspace()">&#9003;</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('0')">0</button>
+        <button type="button" class="numpad-btn"                                onclick="numpadKey('.')">.</button>
+        <button type="button" class="numpad-btn np-confirm"                     onclick="numpadConfirm()">DONE</button>
     </div>
 </div>
 
