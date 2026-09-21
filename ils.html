@@ -3157,22 +3157,29 @@ function clearAirportInput() {
     const dropdown = document.getElementById('airport-dropdown');
 
     input.value = '';
-    dropdown.classList.add('hidden');
 
     document.getElementById('airport-name').innerText = '';
     document.getElementById('init-width').value = '';
     document.getElementById('init-angle').value = '';
 
-    selectedAirport = null; // ✅ สำคัญมาก
+    selectedAirport = null;
 
     initialSettings = { icao:'', ident: '', category:'', width: 0, angle: 0 };
 
     const catEl = document.getElementById('init-category');
     catEl.value = '';
-    handleCategoryChange(catEl);    
-    input.focus();
+    handleCategoryChange(catEl);
     toggleClearBtn();
     activeIndex = -1;
+
+    // ✅ FIX: แสดง dropdown 20 สนามบินแรกหลัง clear
+    if (airportDB.length > 0) {
+        airportResults = airportDB.slice(0, 20);
+        activeIndex = 0;
+        renderAirportDropdown();
+    }
+
+    input.focus();
 }
 
 function handleAirportFocus(el) {
