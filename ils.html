@@ -850,7 +850,7 @@
         <button 
             type="button"
             id="clear-airport-btn"
-            onclick="clearAirportInput()"
+            onclick="clearAirportInput(); event.stopPropagation();"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 hidden">
             <i class="fas fa-times-circle text-lg"></i>
         </button>
@@ -3232,7 +3232,7 @@ document.addEventListener('click', function(e) {
 function handleAirportSearch(keyword) {
     const dropdown = document.getElementById('airport-dropdown');
 
-    if (!keyword || airportDB.length === 0) {
+    if (!keyword.trim() || airportDB.length === 0) {
         dropdown.classList.add('hidden');
         airportResults = [];
         activeIndex = -1;
