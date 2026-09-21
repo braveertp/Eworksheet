@@ -468,6 +468,8 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
         }
+        .numpad-btn.np-close { grid-column: 1; background: #fef2f2; color: #ef4444; font-size: 22px; }
+        .numpad-btn.np-close:active { background: #fee2e2; }
         .numpad-btn {
             background: white;
             border: none;
@@ -491,7 +493,16 @@
         .numpad-btn.np-confirm:active { background: #1e293b; }
         .numpad-btn.np-slash { background: #f0fdf4; color: #16a34a; }
         .numpad-btn.np-slash:active { background: #dcfce7; }
+        .numpad-btn.np-clear { background: #fff7ed; color: #ea580c; font-size: 18px; font-weight: 800; }
+        .numpad-btn.np-clear:active { background: #ffedd5; }
         .numpad-btn:disabled { opacity: 0.3; pointer-events: none; }
+        
+        /* Tall buttons (span 2 rows) */
+        .numpad-minus-tall { grid-row: span 2; }
+        .numpad-done-tall { grid-row: span 2; }
+        
+        /* Wide button (span 2 columns) */
+        .numpad-zero-wide { grid-column: span 2; }
 
 /* ===== PRINT / EXPORT REPORT ===== */
 #print-report { display: none; }
@@ -1419,7 +1430,7 @@ function applyDynamicTolerance() {
     if (SYSTEMS.LOC?.CW?.width) {
             SYSTEMS.LOC.CW.width.min = wMin;
             SYSTEMS.LOC.CW.width.max = wMax;
-            SYSTEMS.LOC.CW.width.tol = `${wMin}° - ${wMax}°`;
+            SYSTEMS.LOC.CW.width.tol = `${wMin.toFixed(2)}° - ${wMax.toFixed(2)}°`;
     }
 
     const mnMin = parseFloat(customRound(baseWidth - (baseWidth * 0.17), 2));
@@ -1427,7 +1438,7 @@ function applyDynamicTolerance() {
     if (SYSTEMS.LOC?.MN?.narrow) {
             SYSTEMS.LOC.MN.narrow.min = mnMin;
             SYSTEMS.LOC.MN.narrow.max = mnMax;
-            SYSTEMS.LOC.MN.narrow.tol = `${mnMin}° - ${mnMax}°`;
+            SYSTEMS.LOC.MN.narrow.tol = `${mnMin.toFixed(2)}° - ${mnMax.toFixed(2)}°`;
     }
 
     const mbMin = parseFloat(customRound(baseWidth + (baseWidth * 0.12), 2));
@@ -1435,7 +1446,7 @@ function applyDynamicTolerance() {
     if (SYSTEMS.LOC?.MB?.wide) {
             SYSTEMS.LOC.MB.wide.min = mbMin;
             SYSTEMS.LOC.MB.wide.max = mbMax;
-            SYSTEMS.LOC.MB.wide.tol = `${mbMin}° - ${mbMax}°`;
+            SYSTEMS.LOC.MB.wide.tol = `${mbMin.toFixed(2)}° - ${mbMax.toFixed(2)}°`;
     }
 
     // ===== GP parameter =====
@@ -1448,13 +1459,13 @@ function applyDynamicTolerance() {
     if (SYSTEMS.GP?.AS?.angle) {
         SYSTEMS.GP.AS.angle.min = aMin;
         SYSTEMS.GP.AS.angle.max = aMax;
-        SYSTEMS.GP.AS.angle.tol = `${aMin}° - ${aMax}°`;
+        SYSTEMS.GP.AS.angle.tol = `${aMin.toFixed(2)}° - ${aMax.toFixed(2)}°`;
     }
 
     if (SYSTEMS.GP?.CW?.width) {
         SYSTEMS.GP.CW.width.min = awMin;
         SYSTEMS.GP.CW.width.max = awMax;
-        SYSTEMS.GP.CW.width.tol = `${awMin}° - ${awMax}°`;
+        SYSTEMS.GP.CW.width.tol = `${awMin.toFixed(2)}° - ${awMax.toFixed(2)}°`;
     }
 
     const gpmnMin = parseFloat(customRound(baseAngle * (0.12-0.0375) * 2, 2));
@@ -1462,7 +1473,7 @@ function applyDynamicTolerance() {
     if (SYSTEMS.GP?.MN?.narrow) {
             SYSTEMS.GP.MN.narrow.min = gpmnMin;
             SYSTEMS.GP.MN.narrow.max = gpmnMax;
-            SYSTEMS.GP.MN.narrow.tol = `${gpmnMin}° - ${gpmnMax}°`;
+            SYSTEMS.GP.MN.narrow.tol = `${gpmnMin.toFixed(2)}° - ${gpmnMax.toFixed(2)}°`;
     }
 
     const gpmbMin = parseFloat(customRound(baseAngle * (0.12+(0.12*0.25)) * 2, 2));
@@ -1470,7 +1481,7 @@ function applyDynamicTolerance() {
     if (SYSTEMS.GP?.MB?.wide) {
             SYSTEMS.GP.MB.wide.min = gpmbMin;
             SYSTEMS.GP.MB.wide.max = gpmbMax;
-            SYSTEMS.GP.MB.wide.tol = `${gpmbMin}° - ${gpmbMax}°`;
+            SYSTEMS.GP.MB.wide.tol = `${gpmbMin.toFixed(2)}° - ${gpmbMax.toFixed(2)}°`;
     }
 
     // ===== GP SBP (Structure Below Path) =====
@@ -1480,13 +1491,13 @@ function applyDynamicTolerance() {
     if (SYSTEMS.GP?.CW?.sbp) {
         SYSTEMS.GP.CW.sbp.min = sbpMin;
         SYSTEMS.GP.CW.sbp.max = sbpMax;
-        SYSTEMS.GP.CW.sbp.tol = `≥${customRound(sbpMin, 2)}°`;
+        SYSTEMS.GP.CW.sbp.tol = `≥${sbpMin.toFixed(2)}°`;
     }
 
     if (SYSTEMS.GP?.MB?.sbp) {
         SYSTEMS.GP.MB.sbp.min = sbpMin;
         SYSTEMS.GP.MB.sbp.max = sbpMax;
-        SYSTEMS.GP.MB.sbp.tol = `≥${customRound(sbpMin, 2)}°`;
+        SYSTEMS.GP.MB.sbp.tol = `≥${sbpMin.toFixed(2)}°`;
     }
 
     const am9Min = parseFloat(customRound(baseAngle + 0.15, 2));
@@ -1494,7 +1505,7 @@ function applyDynamicTolerance() {
     if (SYSTEMS.GP?.AM9LR?.high) {
         SYSTEMS.GP.AM9LR.high.min = am9Min;
         SYSTEMS.GP.AM9LR.high.max = am9Max;
-        SYSTEMS.GP.AM9LR.high.tol = `${am9Min}° - ${am9Max}°`;
+        SYSTEMS.GP.AM9LR.high.tol = `${am9Min.toFixed(2)}° - ${am9Max.toFixed(2)}°`;
     }
 
     const am1Min = parseFloat(customRound(baseAngle - 0.22, 2));
@@ -1502,7 +1513,7 @@ function applyDynamicTolerance() {
     if (SYSTEMS.GP?.AM1LR?.low) {
         SYSTEMS.GP.AM1LR.low.min = am1Min;
         SYSTEMS.GP.AM1LR.low.max = am1Max;
-        SYSTEMS.GP.AM1LR.low.tol = `${am1Min}° - ${am1Max}°`;
+        SYSTEMS.GP.AM1LR.low.tol = `${am1Min.toFixed(2)}° - ${am1Max.toFixed(2)}°`;
     }
     // ===== LOC Zone tolerance by CAT =====
     const cat = (initialSettings.category || '').toUpperCase();
@@ -3094,7 +3105,6 @@ function handleCategoryChange(el) {
             _allowSign  = input.dataset.allowSign === 'true';
 
             elById('numpad-slash').disabled = !_allowSlash;
-            elById('numpad-plus').disabled  = !_allowSign;
             elById('numpad-minus').disabled = !_allowSign;
 
             elById('custom-numpad').classList.add('open');
@@ -3112,11 +3122,6 @@ function handleCategoryChange(el) {
             if (!_active) return;
             var cur = getRaw();
 
-            if (k === '+') {
-                if (!_allowSign) return;
-                if (cur.startsWith('-')) setRaw(cur.slice(1));
-                return;
-            }
             if (k === '-') {
                 if (!_allowSign) return;
                 if (!cur.startsWith('-')) setRaw('-' + cur);
@@ -3139,6 +3144,11 @@ function handleCategoryChange(el) {
         window.numpadBackspace = function() {
             if (!_active) return;
             setRaw(getRaw().slice(0, -1));
+        };
+
+        window.numpadClear = function() {
+            if (!_active) return;
+            setRaw('');
         };
 
         window.numpadConfirm = function() {
@@ -3223,25 +3233,32 @@ function handleCategoryChange(el) {
 <!-- CUSTOM NUMPAD -->
 <div id="custom-numpad">
     <div class="numpad-grid">
-        <button type="button" class="numpad-btn np-operator" id="numpad-plus"  onclick="numpadKey('+')">+</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('7')">7</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('8')">8</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('9')">9</button>
-
-        <button type="button" class="numpad-btn np-operator" id="numpad-minus" onclick="numpadKey('-')">&minus;</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('4')">4</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('5')">5</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('6')">6</button>
-
+        <!-- Row 1: ✕ + / ⌫ -->
+        <button type="button" class="numpad-btn np-close" onclick="numpadConfirm()">✕</button>
         <button type="button" class="numpad-btn np-slash"    id="numpad-slash" onclick="numpadKey('/')">/</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('1')">1</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('2')">2</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('3')">3</button>
+        <button type="button" class="numpad-btn np-clear" id="numpad-clear" onclick="numpadClear()">C</button>
+        <button type="button" class="numpad-btn np-backspace"                   onclick="numpadBackspace()">⌫</button>
 
-        <button type="button" class="numpad-btn np-backspace"                   onclick="numpadBackspace()">&#9003;</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('0')">0</button>
-        <button type="button" class="numpad-btn"                                onclick="numpadKey('.')">.</button>
-        <button type="button" class="numpad-btn np-confirm"                     onclick="numpadConfirm()">DONE</button>
+        <!-- Row 2: 7 8 9 − (minus spans 2 rows) -->
+        <button type="button" class="numpad-btn" onclick="numpadKey('7')">7</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('8')">8</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('9')">9</button>
+        <button type="button" class="numpad-btn np-operator numpad-minus-tall" id="numpad-minus" onclick="numpadKey('-')">&minus;</button>
+
+        <!-- Row 3: 4 5 6 (minus above spans down) -->
+        <button type="button" class="numpad-btn" onclick="numpadKey('4')">4</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('5')">5</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('6')">6</button>
+
+        <!-- Row 4: 1 2 3 DONE (DONE spans 2 rows) -->
+        <button type="button" class="numpad-btn" onclick="numpadKey('1')">1</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('2')">2</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('3')">3</button>
+        <button type="button" class="numpad-btn np-confirm numpad-done-tall" onclick="numpadConfirm()">DONE</button>
+
+        <!-- Row 5: 0 (spans 2 columns) . (DONE above spans down) -->
+        <button type="button" class="numpad-btn numpad-zero-wide" onclick="numpadKey('0')">0</button>
+        <button type="button" class="numpad-btn" onclick="numpadKey('.')">.</button>
     </div>
 </div>
 
