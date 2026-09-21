@@ -28,6 +28,7 @@
             background-color: #f1f5f9; 
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior-y: contain;
+            touch-action: manipulation;
         }
 
         .fixed-top-header {
@@ -462,39 +463,6 @@
             transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
         }
         #custom-numpad.open { transform: translateY(0); }
-        .numpad-display {
-            background: white;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 8px 14px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f172a;
-            text-align: right;
-            min-height: 44px;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            overflow: hidden;
-        }
-        .numpad-display-label {
-            font-size: 9px;
-            font-weight: 700;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            flex-shrink: 0;
-            margin-right: 8px;
-        }
-        .numpad-display-value {
-            flex: 1;
-            text-align: right;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
         .numpad-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -633,7 +601,7 @@
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comm. Width</label>
                         <!-- Added inputmode="decimal" for iOS numeric keyboard with dot -->
-                        <input type="number" step="0.01" id="init-width" placeholder="3.00" 
+                        <input type="text" id="init-width" placeholder="3.00" 
                                inputmode="decimal"
                                onkeydown="handleModalNavigation(event, 'init-angle')"
                                onblur="formatDecimal(this)"
@@ -642,7 +610,7 @@
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comm. Angle</label>
                         <!-- Added inputmode="decimal" for iOS numeric keyboard with dot -->
-                        <input type="number" step="0.01" id="init-angle" placeholder="3.00" 
+                        <input type="text" id="init-angle" placeholder="3.00" 
                                inputmode="decimal"
                                onkeydown="handleModalNavigation(event, 'submit-init')"
                                onblur="formatDecimal(this)"
@@ -1097,11 +1065,11 @@ function renderSubFields(containerId, system, profile, cid) {
         } else if (isAlignment) {
             inputHtml = `
                 <div class="flex items-center gap-1 min-w-0">
-                    <input type="number" step="any" id="${cid}-field-${key}" name="${key}"
+                    <input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                         oninput="validateSubAlignment(this, '${cid}', '${key}')"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
                         data-allow-sign="true"
-                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
+                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
                     <span id="${cid}-badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
                 </div>`;
         } else if (isZone) {
@@ -1115,10 +1083,10 @@ function renderSubFields(containerId, system, profile, cid) {
                 onchange="validateSubCheckbox(this, '${cid}', '${key}')"
                 class="w-5 h-5 rounded-full accent-green-500 cursor-pointer" autocomplete="off">`;
         } else {
-            inputHtml = `<input type="number" step="any" id="${cid}-field-${key}" name="${key}"
+            inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                 oninput="validateSubInput(this, '${system}', '${profile}', '${key}')"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
-                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">`;
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
 
         let tolHtml;
@@ -1445,81 +1413,96 @@ function applyDynamicTolerance() {
     const baseAngle = parseFloat(initialSettings.angle);
 
     // ===== LOC parameter =====
-    const wMin = baseWidth * 0.95;
-    const wMax = baseWidth * 1.05;
+    const wMin = parseFloat(customRound(baseWidth * 0.95, 2));
+    const wMax = parseFloat(customRound(baseWidth * 1.05, 2));
 
     if (SYSTEMS.LOC?.CW?.width) {
             SYSTEMS.LOC.CW.width.min = wMin;
             SYSTEMS.LOC.CW.width.max = wMax;
-            SYSTEMS.LOC.CW.width.tol = `${customRound(wMin,2)}° - ${customRound(wMax,2)}°`;
+            SYSTEMS.LOC.CW.width.tol = `${wMin}° - ${wMax}°`;
     }
 
+    const mnMin = parseFloat(customRound(baseWidth - (baseWidth * 0.17), 2));
+    const mnMax = parseFloat(customRound(baseWidth - (baseWidth * 0.12), 2));
     if (SYSTEMS.LOC?.MN?.narrow) {
-            SYSTEMS.LOC.MN.narrow.min = baseWidth - (baseWidth * 0.17);
-            SYSTEMS.LOC.MN.narrow.max = baseWidth - (baseWidth * 0.12);
-            SYSTEMS.LOC.MN.narrow.tol = `${customRound(baseWidth - (baseWidth * 0.17), 2)}° - ${customRound(baseWidth - (baseWidth * 0.12), 2)}°`;
+            SYSTEMS.LOC.MN.narrow.min = mnMin;
+            SYSTEMS.LOC.MN.narrow.max = mnMax;
+            SYSTEMS.LOC.MN.narrow.tol = `${mnMin}° - ${mnMax}°`;
     }
 
+    const mbMin = parseFloat(customRound(baseWidth + (baseWidth * 0.12), 2));
+    const mbMax = parseFloat(customRound(baseWidth + (baseWidth * 0.17), 2));
     if (SYSTEMS.LOC?.MB?.wide) {
-            SYSTEMS.LOC.MB.wide.min = baseWidth + (baseWidth * 0.12);
-            SYSTEMS.LOC.MB.wide.max = baseWidth + (baseWidth * 0.17);
-            SYSTEMS.LOC.MB.wide.tol = `${customRound(baseWidth + (baseWidth * 0.12), 2)}° - ${customRound(baseWidth + (baseWidth * 0.17), 2)}°`;
+            SYSTEMS.LOC.MB.wide.min = mbMin;
+            SYSTEMS.LOC.MB.wide.max = mbMax;
+            SYSTEMS.LOC.MB.wide.tol = `${mbMin}° - ${mbMax}°`;
     }
 
     // ===== GP parameter =====
-    const aMin = baseAngle - 0.1;
-    const aMax = baseAngle + 0.1;
+    const aMin = parseFloat(customRound(baseAngle - 0.1, 2));
+    const aMax = parseFloat(customRound(baseAngle + 0.1, 2));
     const aw = baseAngle * 0.12 * 2;
+    const awMin = parseFloat(customRound(aw - 0.1, 2));
+    const awMax = parseFloat(customRound(aw + 0.1, 2));
 
     if (SYSTEMS.GP?.AS?.angle) {
         SYSTEMS.GP.AS.angle.min = aMin;
         SYSTEMS.GP.AS.angle.max = aMax;
-        SYSTEMS.GP.AS.angle.tol = `${customRound(aMin,2)}° - ${customRound(aMax,2)}°`;
+        SYSTEMS.GP.AS.angle.tol = `${aMin}° - ${aMax}°`;
     }
 
     if (SYSTEMS.GP?.CW?.width) {
-        SYSTEMS.GP.CW.width.min = aw - 0.1;
-        SYSTEMS.GP.CW.width.max = aw + 0.1;
-        SYSTEMS.GP.CW.width.tol = `${customRound(aw - 0.1,2)}° - ${customRound(aw + 0.1,2)}°`;
+        SYSTEMS.GP.CW.width.min = awMin;
+        SYSTEMS.GP.CW.width.max = awMax;
+        SYSTEMS.GP.CW.width.tol = `${awMin}° - ${awMax}°`;
     }
 
+    const gpmnMin = parseFloat(customRound(baseAngle * (0.12-0.0375) * 2, 2));
+    const gpmnMax = parseFloat(customRound(baseAngle * (0.12-(0.12*0.25)) * 2, 2));
     if (SYSTEMS.GP?.MN?.narrow) {
-            SYSTEMS.GP.MN.narrow.min = baseAngle * (0.12-0.0375) * 2;
-            SYSTEMS.GP.MN.narrow.max = baseAngle * (0.12-(0.12*0.25)) * 2;
-            SYSTEMS.GP.MN.narrow.tol = `${customRound(baseAngle * (0.12-0.0375) * 2, 2)}° - ${customRound(baseAngle * (0.12-(0.12*0.25)) * 2, 2)}°`;
+            SYSTEMS.GP.MN.narrow.min = gpmnMin;
+            SYSTEMS.GP.MN.narrow.max = gpmnMax;
+            SYSTEMS.GP.MN.narrow.tol = `${gpmnMin}° - ${gpmnMax}°`;
     }
 
+    const gpmbMin = parseFloat(customRound(baseAngle * (0.12+(0.12*0.25)) * 2, 2));
+    const gpmbMax = parseFloat(customRound(baseAngle * (0.12+0.0375) * 2, 2));
     if (SYSTEMS.GP?.MB?.wide) {
-            SYSTEMS.GP.MB.wide.min = baseAngle * (0.12+(0.12*0.25)) * 2;
-            SYSTEMS.GP.MB.wide.max = baseAngle * (0.12+0.0375) * 2;
-            SYSTEMS.GP.MB.wide.tol = `${customRound(baseAngle * (0.12+(0.12*0.25)) * 2, 2)}° - ${customRound(baseAngle * (0.12+0.0375) * 2, 2)}°`;
+            SYSTEMS.GP.MB.wide.min = gpmbMin;
+            SYSTEMS.GP.MB.wide.max = gpmbMax;
+            SYSTEMS.GP.MB.wide.tol = `${gpmbMin}° - ${gpmbMax}°`;
     }
 
     // ===== GP SBP (Structure Below Path) =====
     const sbpMin = parseFloat(customRound(baseAngle * 0.3, 2));
+    const sbpMax = baseAngle;
 
     if (SYSTEMS.GP?.CW?.sbp) {
         SYSTEMS.GP.CW.sbp.min = sbpMin;
-        SYSTEMS.GP.CW.sbp.max = baseAngle
+        SYSTEMS.GP.CW.sbp.max = sbpMax;
         SYSTEMS.GP.CW.sbp.tol = `≥${customRound(sbpMin, 2)}°`;
     }
 
     if (SYSTEMS.GP?.MB?.sbp) {
         SYSTEMS.GP.MB.sbp.min = sbpMin;
-        SYSTEMS.GP.MB.sbp.max = baseAngle
+        SYSTEMS.GP.MB.sbp.max = sbpMax;
         SYSTEMS.GP.MB.sbp.tol = `≥${customRound(sbpMin, 2)}°`;
     }
 
+    const am9Min = parseFloat(customRound(baseAngle + 0.15, 2));
+    const am9Max = parseFloat(customRound(baseAngle + 0.30, 2));
     if (SYSTEMS.GP?.AM9LR?.high) {
-        SYSTEMS.GP.AM9LR.high.min = baseAngle + 0.15;
-        SYSTEMS.GP.AM9LR.high.max = baseAngle + 0.30;
-        SYSTEMS.GP.AM9LR.high.tol = `${customRound(baseAngle + 0.15,2)}° - ${customRound(baseAngle + 0.30,2)}°`;
+        SYSTEMS.GP.AM9LR.high.min = am9Min;
+        SYSTEMS.GP.AM9LR.high.max = am9Max;
+        SYSTEMS.GP.AM9LR.high.tol = `${am9Min}° - ${am9Max}°`;
     }
 
+    const am1Min = parseFloat(customRound(baseAngle - 0.22, 2));
+    const am1Max = parseFloat(customRound(baseAngle - 0.15, 2));
     if (SYSTEMS.GP?.AM1LR?.low) {
-        SYSTEMS.GP.AM1LR.low.min = baseAngle - 0.22;
-        SYSTEMS.GP.AM1LR.low.max = baseAngle - 0.15;
-        SYSTEMS.GP.AM1LR.low.tol = `${customRound(baseAngle - 0.22,2)}° - ${customRound(baseAngle - 0.15,2)}°`;
+        SYSTEMS.GP.AM1LR.low.min = am1Min;
+        SYSTEMS.GP.AM1LR.low.max = am1Max;
+        SYSTEMS.GP.AM1LR.low.tol = `${am1Min}° - ${am1Max}°`;
     }
     // ===== LOC Zone tolerance by CAT =====
     const cat = (initialSettings.category || '').toUpperCase();
@@ -2133,11 +2116,11 @@ function applyDynamicTolerance() {
         } else if (isAlignment) {
             inputHtml = `
                 <div class="flex items-center gap-1 min-w-0">
-                    <input type="number" step="any" id="field-${key}" name="${key}"
+                    <input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                         oninput="validateAlignmentInput(this)"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
                         data-allow-sign="true"
-                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">
+                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
                     <span id="badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
                 </div>`;
         } else if (isZone) {
@@ -2147,10 +2130,10 @@ function applyDynamicTolerance() {
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else {
-            inputHtml = `<input type="number" step="any" id="field-${key}" name="${key}"
+            inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                 oninput="validateInput(this,'${currentSystem}','${profile}','${key}')"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
-                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off" inputmode="decimal">`;
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
 
         let tolHtml;
@@ -3086,104 +3069,93 @@ function handleCategoryChange(el) {
     // ===== CUSTOM NUMPAD ENGINE =====
     (function() {
         var _active = null;
-        var _val = '';
         var _allowSlash = false;
         var _allowSign  = false;
 
-        function el(id) { return document.getElementById(id); }
+        function elById(id) { return document.getElementById(id); }
 
-        function syncDisplay() {
-            var dv = el('numpad-display-value');
-            if (dv) dv.textContent = _val === '' ? '—' : _val;
+        // Set the raw string directly into the input without browser type=number filtering
+        function setRaw(val) {
+            if (!_active) return;
+            // Use native setter to bypass React-style value traps (not needed here but safe)
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(_active, val);
+            _active.dispatchEvent(new Event('input', {bubbles: true}));
+        }
+
+        function getRaw() {
+            return _active ? _active.value : '';
         }
 
         function openNumpad(input) {
             _active = input;
-            _val = input.value || '';
 
             var ph = (input.placeholder || '').toLowerCase();
-            _allowSlash = ph.indexOf('/') >= 0 || ph.indexOf('\u03bca') >= 0 || ph.indexOf('nm') >= 0;
+            _allowSlash = ph.indexOf('/') >= 0 || ph.indexOf('nm') >= 0 || ph.indexOf('μa') >= 0;
             _allowSign  = input.dataset.allowSign === 'true';
 
-            el('numpad-slash').disabled  = !_allowSlash;
-            el('numpad-plus').disabled   = !_allowSign;
-            el('numpad-minus').disabled  = !_allowSign;
+            elById('numpad-slash').disabled = !_allowSlash;
+            elById('numpad-plus').disabled  = !_allowSign;
+            elById('numpad-minus').disabled = !_allowSign;
 
-            // Label from closest horizontal-field
-            var hf = input.closest('.horizontal-field');
-            var lbl = el('numpad-field-label');
-            if (lbl) {
-                if (hf) {
-                    var sp = hf.querySelector('span.text-\\[10px\\]');
-                    if (!sp) sp = hf.querySelector('div.field-label span');
-                    if (!sp) sp = hf.querySelector('span');
-                    lbl.textContent = sp ? sp.textContent.trim() : '';
-                } else {
-                    lbl.textContent = input.placeholder || '';
-                }
-            }
-
-            syncDisplay();
-            el('custom-numpad').classList.add('open');
+            elById('custom-numpad').classList.add('open');
         }
 
         function closeNumpad() {
-            el('custom-numpad').classList.remove('open');
-            _active = null;
+            elById('custom-numpad').classList.remove('open');
+            if (_active) {
+                _active.dispatchEvent(new Event('change', {bubbles: true}));
+                _active = null;
+            }
         }
 
         window.numpadKey = function(k) {
             if (!_active) return;
-            if (k === '+' || k === '-') {
+            var cur = getRaw();
+
+            if (k === '+') {
                 if (!_allowSign) return;
-                if (_val.startsWith('-')) {
-                    _val = k === '+' ? _val.slice(1) : _val;
-                } else {
-                    _val = k === '-' ? '-' + _val : _val;
-                }
-                syncDisplay(); return;
+                if (cur.startsWith('-')) setRaw(cur.slice(1));
+                return;
+            }
+            if (k === '-') {
+                if (!_allowSign) return;
+                if (!cur.startsWith('-')) setRaw('-' + cur);
+                return;
             }
             if (k === '/') {
-                if (!_allowSlash || _val.indexOf('/') >= 0) return;
-                _val += '/'; syncDisplay(); return;
+                if (!_allowSlash || cur.indexOf('/') >= 0) return;
+                setRaw(cur + '/');
+                return;
             }
             if (k === '.') {
-                var seg = _val.split('/').pop();
+                var seg = cur.split('/').pop();
                 if (seg.indexOf('.') >= 0) return;
+                setRaw(cur + '.');
+                return;
             }
-            _val += k;
-            syncDisplay();
+            setRaw(cur + k);
         };
 
         window.numpadBackspace = function() {
             if (!_active) return;
-            _val = _val.slice(0, -1);
-            syncDisplay();
+            setRaw(getRaw().slice(0, -1));
         };
 
         window.numpadConfirm = function() {
-            if (!_active) return;
-            var inp = _active;
-            inp.value = _val;
-            // Fire input event so existing validators run
-            inp.dispatchEvent(new Event('input', {bubbles:true}));
-            inp.dispatchEvent(new Event('change', {bubbles:true}));
             closeNumpad();
         };
 
-        // Intercept focus on number/text inputs inside form fields
+        // Intercept focus on inputs inside .horizontal-field or init modal
         document.addEventListener('focusin', function(e) {
             var inp = e.target;
             if (!inp || inp.tagName !== 'INPUT') return;
             if (inp.type === 'checkbox' || inp.type === 'radio' ||
                 inp.type === 'hidden'   || inp.type === 'file'  ||
                 inp.type === 'date') return;
-            // Only fields inside .horizontal-field or the init modal number fields
-            var inHF  = !!inp.closest('.horizontal-field');
+            var inHF   = !!inp.closest('.horizontal-field');
             var isInit = inp.id === 'init-width' || inp.id === 'init-angle';
             if (!inHF && !isInit) return;
 
-            // Prevent system keyboard
             inp.setAttribute('readonly', 'readonly');
             inp.blur();
             inp.removeAttribute('readonly');
@@ -3191,12 +3163,11 @@ function handleCategoryChange(el) {
             setTimeout(function() { openNumpad(inp); }, 20);
         }, true);
 
-        // Tap outside numpad = confirm
+        // Tap outside = close
         document.addEventListener('pointerdown', function(e) {
-            if (!el('custom-numpad').classList.contains('open')) return;
-            if (!el('custom-numpad').contains(e.target)) {
-                numpadConfirm();
-            }
+            var np = elById('custom-numpad');
+            if (!np.classList.contains('open')) return;
+            if (!np.contains(e.target)) closeNumpad();
         }, true);
 
     })();
@@ -3251,10 +3222,6 @@ function handleCategoryChange(el) {
 
 <!-- CUSTOM NUMPAD -->
 <div id="custom-numpad">
-    <div class="numpad-display">
-        <span class="numpad-display-label" id="numpad-field-label"></span>
-        <span class="numpad-display-value" id="numpad-display-value">&mdash;</span>
-    </div>
     <div class="numpad-grid">
         <button type="button" class="numpad-btn np-operator" id="numpad-plus"  onclick="numpadKey('+')">+</button>
         <button type="button" class="numpad-btn"                                onclick="numpadKey('7')">7</button>
