@@ -7,23 +7,23 @@ const CACHE_NAME = 'ils-offline-v1';
 
 // All files that make up the app shell
 const PRECACHE_URLS = [
-  './Eworksheet/',
-  './Eworksheet/index.html',
-  './Eworksheet/ils.html',
-  './Eworksheet/airport.json',
-  './Eworksheet/manifest.json',
-  './Eworksheet/assets/tailwind.css',
-  './Eworksheet/assets/fontawesome.css',
-  './Eworksheet/assets/icon-192.png',
-  './Eworksheet/assets/icon-512.png',
-  './Eworksheet/assets/fonts/inter-latin-300-normal.woff2',
-  './Eworksheet/assets/fonts/inter-latin-400-normal.woff2',
-  './Eworksheet/assets/fonts/inter-latin-500-normal.woff2',
-  './Eworksheet/assets/fonts/inter-latin-600-normal.woff2',
-  './Eworksheet/assets/fonts/inter-latin-700-normal.woff2',
-  './Eworksheet/assets/fonts/fa-solid-900.woff2',
-  './Eworksheet/assets/fonts/fa-regular-400.woff2',
-  './Eworksheet/assets/fonts/fa-brands-400.woff2',
+  './',
+  './index.html',
+  './ils.html',
+  './airport.json',
+  './manifest.json',
+  './assets/tailwind.css',
+  './assets/fontawesome.css',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/fonts/inter-latin-300-normal.woff2',
+  './assets/fonts/inter-latin-400-normal.woff2',
+  './assets/fonts/inter-latin-500-normal.woff2',
+  './assets/fonts/inter-latin-600-normal.woff2',
+  './assets/fonts/inter-latin-700-normal.woff2',
+  './assets/fonts/fa-solid-900.woff2',
+  './assets/fonts/fa-regular-400.woff2',
+  './assets/fonts/fa-brands-400.woff2',
 ];
 
 /* ── Install: pre-cache everything ── */
@@ -64,7 +64,7 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Offline and not in cache — return offline fallback for HTML pages
         if (event.request.destination === 'document') {
-          return caches.match('./Eworksheet/index.html');
+          return caches.match('./index.html');
         }
       });
     })
