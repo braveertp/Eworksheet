@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Worksheet</title>
-    <link rel="stylesheet" href="./assets/tailwind.css">
-    <link href="./assets/fontawesome.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @font-face { font-family: 'Inter'; font-style: normal; font-weight: 300; src: url('./assets/fonts/inter-latin-300-normal.woff2') format('woff2'); }
-        @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url('./assets/fonts/inter-latin-400-normal.woff2') format('woff2'); }
-        @font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; src: url('./assets/fonts/inter-latin-500-normal.woff2') format('woff2'); }
-        @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; src: url('./assets/fonts/inter-latin-600-normal.woff2') format('woff2'); }
-        @font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; src: url('./assets/fonts/inter-latin-700-normal.woff2') format('woff2'); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .glass-card {
             background: rgba(255, 255, 255, 0.9);
@@ -83,19 +79,18 @@
     </main>
 
     <script>
-        const PAGES = { ils: 'ils.html' };
-        function navigateTo(page) {
-            const target = PAGES[page];
-            if (!target) return;
-            window.location.href = target;
-        }
+        // Static, offline navigation — each module is its own HTML file.
+        // (No server / Google Apps Script involved anymore.)
+        const PAGES = {
+    ils: 'ils.html'
+};
 
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js');
-            });
-        }
+function navigateTo(page) {
+    const target = PAGES[page];
+    if (!target) return;
+
+    window.location.href = target;
+}
     </script>
 </body>
 </html>
