@@ -2640,7 +2640,7 @@ function applyDynamicTolerance() {
                 wrapper.id = `run-card-${run.id}`;
 
                 const card = document.createElement('div');
-                card.className = "run-card bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4";
+                card.className = "run-card bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3";
                 
                 let valHtml = '';
                 // ✅ Filter only main-run keys (from run.profile, not from sub-runs)
@@ -2708,23 +2708,23 @@ function applyDynamicTolerance() {
                 if (run.status === "UNSAT") statusColor = "text-red-600";
 
                 card.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-slate-100 text-slate-700 rounded-full flex items-center justify-center border border-slate-200 font-black text-xs">${run.runNumber}</div>
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="px-1.5 py-0.5 bg-slate-800 text-white text-[8px] font-black rounded uppercase">${run.systemType}</span>
-                                <h4 class="font-bold text-slate-800 text-xs leading-none">${run.profile}</h4>
-                                <span class="px-1 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded">${run.transmitter}</span>
-                                ${run.systemType === 'GP' && run.profile === 'COLR' && run.values.colr_dir
-                                    ? `<span class="px-1.5 py-0.5 text-[8px] font-black rounded ${run.values.colr_dir === 'LEFT' ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}">${run.values.colr_dir === 'LEFT' ? '\u25C4' : '\u25BA'} ${run.values.colr_dir} 8\u00B0</span>`
-                                    : ''}
+                    <!-- Row 1: detail left | status+delete right -->
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 shrink-0 bg-slate-100 text-slate-700 rounded-full flex items-center justify-center border border-slate-200 font-black text-xs">${run.runNumber}</div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="px-1.5 py-0.5 bg-slate-800 text-white text-[8px] font-black rounded uppercase">${run.systemType}</span>
+                                    <h4 class="font-bold text-slate-800 text-xs leading-none">${run.profile}</h4>
+                                    <span class="px-1 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded">${run.transmitter}</span>
+                                    ${run.systemType === 'GP' && run.profile === 'COLR' && run.values.colr_dir
+                                        ? `<span class="px-1.5 py-0.5 text-[8px] font-black rounded ${run.values.colr_dir === 'LEFT' ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}">${run.values.colr_dir === 'LEFT' ? '\u25C4' : '\u25BA'} ${run.values.colr_dir} 8\u00B0</span>`
+                                        : ''}
+                                </div>
+                                <span class="text-[8px] text-slate-400">${run.timestamp}</span>
                             </div>
-                            <span class="text-[8px] text-slate-400">${run.timestamp}</span>
                         </div>
-                    </div>
-                    <div class="flex-1 flex flex-wrap gap-x-4 gap-y-2 md:pl-4 md:border-l border-slate-100">${valHtml}</div>
-                    <div class="flex flex-col items-end gap-2">
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0">
                             <select onchange="updateRunStatus(${run.id}, this.value)"
                                 class="text-[8px] font-bold ${statusColor} border border-slate-200 rounded-full px-3 py-1 bg-white focus:outline-none">
                                 <option value="INITIAL" ${run.status === 'INITIAL' ? 'selected' : ''}>INITIAL</option>
@@ -2735,7 +2735,9 @@ function applyDynamicTolerance() {
                                 <i class="fas fa-trash-alt text-xs"></i>
                             </button>
                         </div>
-                    </div>`;
+                    </div>
+                    <!-- Row 2: parameters -->
+                    <div class="flex flex-wrap gap-x-4 gap-y-2 pl-12">${valHtml}</div>`;
 
                 wrapper.appendChild(card);
 
