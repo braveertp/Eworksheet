@@ -473,7 +473,7 @@
         .numpad-btn {
             background: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 999px;
             font-size: 18px;
             font-weight: 700;
             color: #1e293b;
@@ -485,17 +485,17 @@
             user-select: none;
         }
         .numpad-btn:active { transform: scale(0.94); background: #e2e8f0; }
-        .numpad-btn.np-operator { background: #dbeafe; color: #1d4ed8; font-size: 22px; }
+        .numpad-btn.np-operator { background: #dbeafe; color: #1d4ed8; font-size: 22px; font-weight: 800;}
         .numpad-btn.np-operator:active { background: #bfdbfe; }
-        .numpad-btn.np-backspace { background: #fef2f2; color: #ef4444; }
-        .numpad-btn.np-backspace:active { background: #fee2e2; }
-        .numpad-btn.np-confirm { background: #0f172a; color: white; font-size: 14px; }
-        .numpad-btn.np-confirm:active { background: #1e293b; }
-        .numpad-btn.np-slash { background: #f0fdf4; color: #16a34a; }
+        .numpad-btn.np-backspace { background: #d4d2d2; color: #000000; }
+        .numpad-btn.np-backspace:active { background: #3f3d3d; }
+        .numpad-btn.np-confirm { background: #3b82f6; color: white; font-size: 14px; }
+        .numpad-btn.np-confirm:active { background: #082553; }
+        .numpad-btn.np-slash { background: #f0fdf4; color: #3b82f6; font-weight: 800; }
         .numpad-btn.np-slash:active { background: #dcfce7; }
-        .numpad-btn.np-clear { background: #fff7ed; color: #ea580c; font-size: 18px; font-weight: 800; }
-        .numpad-btn.np-clear:active { background: #ffedd5; }
-        .numpad-btn:disabled { opacity: 0.3; pointer-events: none; }
+        .numpad-btn.np-clear { background: #f9c6bc; color: #3f1414; font-size: 18px; font-weight: 800; }
+        .numpad-btn.np-clear:active { background: #3a1918; }
+        .numpad-btn:disabled { opacity: 0.3; pointer-events: none; font-weight: 800; }
         
         /* Tall buttons (span 2 rows) */
         .numpad-minus-tall { grid-row: span 2; }
