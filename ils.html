@@ -1207,8 +1207,8 @@
             clr_90: { label: "Clearance 90", tol: "≥150μA / 10°–35°", type: "clearance" }
         },
         AM: {
-            alarm_150: { label: "Alignment Alarm 150", tol: "±15μA", min: 0, max: 15 },
-            alarm_90: { label: "Alignment Alarm 90", tol: "±15μA", min: 0, max: 15 }
+            alarm_150: { label: "Alignment Alarm 150", tol: "+15μA", min: 0, max: 15 },
+            alarm_90: { label: "Alignment Alarm 90", tol: "-15μA", min: 0, max: -15 }
         },
         COLR: {
             ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
@@ -1254,7 +1254,7 @@
         },
         COLR: {
             ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
-            sig_strength: { label: "Signal Strength", tol: "≥5 μV", type: "checkbox" },
+            sig_strength: { label: "Signal Strength", tol: "≥15 μV", type: "checkbox" },
             clr_150:      { label: "Clearance 150",   tol: "≥150 μA", type: "checkbox" },
             clr_90:       { label: "Clearance 90",    tol: "≥150 μA", type: "checkbox" }
         },
