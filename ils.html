@@ -1134,13 +1134,14 @@
         }
 
         // ===== FORMAT-ON-BLUR HELPERS =====
-        // Format normal numeric field to 2 decimal places on blur, then re-validate
+        // Format normal numeric field on blur, then re-validate
         function formatNumericBlur(el, system, profile, key) {
             const raw = el.value.trim();
             if (raw === '') return;
             const val = parseFloat(raw);
             if (isNaN(val)) return;
-            el.value = parseFloat(customRound(val, 2)).toFixed(2);
+            const field = getField(system, profile, key);
+            el.value = formatDecimalForReport(val, getReportDecimals(field, key));
             validateInput(el, system, profile, key);
         }
 
@@ -1186,7 +1187,8 @@
             if (raw === '') return;
             const val = parseFloat(raw);
             if (isNaN(val)) return;
-            el.value = parseFloat(customRound(val, 2)).toFixed(2);
+            const field = getField(system, profile, key);
+            el.value = formatDecimalForReport(val, getReportDecimals(field, key));
             validateSubInput(el, system, profile, key);
         }
 
@@ -1248,6 +1250,7 @@
         }
 
         function getReportDecimals(field, key) {
+            if (key === 'alarm_90' || key === 'alarm_150') return 0;
             if (key === 'modulation' || key === 'sym') return 1;
             if (['width', 'angle', 'narrow', 'wide', 'high', 'low', 'sbp'].includes(key)) return 2;
             if (field?.reportDecimals !== undefined) return field.reportDecimals;
@@ -1674,9 +1677,6 @@ function validateSubAlignment(el, cid, key) {
 }
 function validateSubClearance(el) {
     const raw = el.value.trim();
-    if (/^\d{3}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
-        el.value = raw + '/'; return;
-    }
     const parts = raw.split('/');
     if (parts.length !== 2) { el.classList.remove('val-pass','val-fail'); return; }
     const uA = parseFloat(parts[0]), angle = parseFloat(parts[1]);
@@ -1687,9 +1687,6 @@ function validateSubClearance(el) {
 }
 function validateSubZone(el, cid, key) {
     const raw = el.value.trim();
-    if (/^\d{2}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
-        el.value = raw + '/'; return;
-    }
     const parts = raw.split('/');
     if (parts.length !== 2) { el.classList.remove('val-pass','val-fail'); return; }
     const uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
@@ -2214,18 +2211,10 @@ function applyDynamicTolerance() {
         }
 
         function handlePendingClearanceInput(el) {
-            const raw = el.value.trim();
-            if (/^\d{3}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
-                el.value = raw + '/';
-            }
             clearValidationState(el);
         }
 
         function handlePendingZoneInput(el) {
-            const raw = el.value.trim();
-            if (/^\d{2}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
-                el.value = raw + '/';
-            }
             clearValidationState(el);
         }
 
@@ -2264,11 +2253,6 @@ function applyDynamicTolerance() {
 
         function validateZoneInput(el, key) {
             const raw = el.value.trim();
-            // Auto-insert "/" after 2-digit μA value (skip if user just deleted a slash)
-            if (/^\d{2}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
-                el.value = raw + '/';
-                return;
-            }
             const parts = raw.split('/');
             if (parts.length !== 2) { el.classList.remove('val-pass','val-fail'); return; }
             const uA = parseFloat(parts[0]);
@@ -2304,11 +2288,6 @@ function applyDynamicTolerance() {
 
         function validateClearanceInput(el) {
             const raw = el.value.trim();
-            // Auto-insert "/" after 3 digits for convenience (skip if user just deleted a slash)
-            if (/^\d{3}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
-                el.value = raw + '/';
-                return;
-            }
             const parts = raw.split('/');
             if (parts.length !== 2) {
                 el.classList.remove('val-pass', 'val-fail');
