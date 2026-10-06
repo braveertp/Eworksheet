@@ -71,9 +71,103 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
             margin-bottom: 3rem;
         }
-        header .container { max-width: 1280px; margin: 0 auto; }
+        header .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .header-title { min-width: 0; }
         header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.025em; }
         header p { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+        .offline-status {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 9999px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            background: rgba(15,23,42,0.75);
+            color: #ef4444;
+        }
+        .offline-status.ready {
+            color: #22c55e;
+        }
+        .offline-status .status-mark {
+            width: 1.15rem;
+            height: 1.15rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            color: white;
+            background: #ef4444;
+        }
+        .offline-status.ready .status-mark {
+            background: #22c55e;
+        }
+
+        /* ── Loading screen ── */
+        .cache-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: #0f172a;
+            color: white;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .cache-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .cache-loader-panel {
+            width: min(100%, 24rem);
+            text-align: center;
+        }
+        .cache-loader-spinner {
+            width: 3rem;
+            height: 3rem;
+            margin: 0 auto 1.25rem;
+            border: 4px solid rgba(255,255,255,0.22);
+            border-top-color: #38bdf8;
+            border-radius: 9999px;
+            animation: cacheSpin 0.85s linear infinite;
+        }
+        .cache-loader-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .cache-loader-text {
+            margin-top: 0.5rem;
+            color: #cbd5e1;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .cache-loader-error .cache-loader-spinner {
+            display: none;
+        }
+        .cache-loader-error .cache-loader-title {
+            color: #f87171;
+        }
+        @keyframes cacheSpin {
+            to { transform: rotate(360deg); }
+        }
+        body.cache-pending main {
+            pointer-events: none;
+            user-select: none;
+        }
 
         /* ── Grid ── */
         main .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
@@ -130,13 +224,37 @@
 
         /* ── SVG Icons (inline — no FA needed) ── */
         .icon-svg { width: 1.5rem; height: 1.5rem; fill: currentColor; }
+        @media (max-width: 480px) {
+            header { padding: 1rem; }
+            header h1 { font-size: 1rem; }
+            header p { font-size: 0.75rem; }
+            .offline-status {
+                padding: 0.4rem 0.55rem;
+                font-size: 0.65rem;
+                letter-spacing: 0.04em;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="cache-pending">
+    <div id="cache-loader" class="cache-loader" role="status" aria-live="polite">
+        <div class="cache-loader-panel">
+            <div class="cache-loader-spinner" aria-hidden="true"></div>
+            <div id="cache-loader-title" class="cache-loader-title">กำลังเตรียมใช้งานออฟไลน์</div>
+            <div id="cache-loader-text" class="cache-loader-text">กำลังติดตั้ง cache ให้ครบถ้วน ก่อนเปิดหน้าใช้งาน</div>
+        </div>
+    </div>
+
     <header>
         <div class="container">
-            <h1>E-Worksheet System</h1>
-            <p>Flight Inspection</p>
+            <div class="header-title">
+                <h1>E-Worksheet System</h1>
+                <p>Flight Inspection</p>
+            </div>
+            <div id="offline-status" class="offline-status" aria-live="polite">
+                <span id="offline-status-mark" class="status-mark" aria-hidden="true">×</span>
+                <span>OFFLINE</span>
+            </div>
         </div>
     </header>
 
@@ -205,19 +323,103 @@
 
     <script>
         const PAGES = { ils: 'ils.html' };
+        const REQUIRED_CACHE_URLS = [
+            './',
+            './index.html',
+            './ils.html',
+            './manifest.json',
+            './airport.json',
+            './assets/tailwind.css',
+            './assets/fontawesome.css',
+            './assets/fonts/fa-solid-900.woff2',
+            './assets/fonts/fa-regular-400.woff2',
+            './assets/fonts/fa-brands-400.woff2',
+            './assets/fonts/inter-latin-300-normal.woff2',
+            './assets/fonts/inter-latin-400-normal.woff2',
+            './assets/fonts/inter-latin-500-normal.woff2',
+            './assets/fonts/inter-latin-600-normal.woff2',
+            './assets/fonts/inter-latin-700-normal.woff2',
+            './assets/icon-192.png',
+            './assets/icon-512.png',
+            './assets/icon.svg',
+        ];
+        let offlineReady = false;
+
         function navigateTo(page) {
+            if (!offlineReady) return;
             const target = PAGES[page];
             if (target) window.location.href = target;
         }
 
-        // ── Register Service Worker ──
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' })
-                    .then(reg => console.log('SW registered:', reg.scope))
-                    .catch(err => console.warn('SW registration failed:', err));
-            });
+        function setOfflineStatus(isReady) {
+            offlineReady = isReady;
+            const status = document.getElementById('offline-status');
+            const mark = document.getElementById('offline-status-mark');
+            status.classList.toggle('ready', isReady);
+            mark.textContent = isReady ? '✓' : '×';
+            status.setAttribute('aria-label', isReady ? 'Offline cache ready' : 'Offline cache not ready');
         }
+
+        function hideCacheLoader() {
+            document.body.classList.remove('cache-pending');
+            document.getElementById('cache-loader').classList.add('hidden');
+        }
+
+        function showCacheError(message) {
+            const loader = document.getElementById('cache-loader');
+            loader.classList.add('cache-loader-error');
+            document.getElementById('cache-loader-title').textContent = 'ยังใช้งานออฟไลน์ไม่ได้';
+            document.getElementById('cache-loader-text').textContent = message;
+        }
+
+        async function verifyOfflineCache() {
+            if (!window.caches) return false;
+            const missing = [];
+
+            for (const url of REQUIRED_CACHE_URLS) {
+                const request = new Request(url, { cache: 'reload' });
+                const cached = await window.caches.match(request);
+                if (!cached) missing.push(url);
+            }
+
+            if (missing.length) {
+                console.warn('Offline cache missing:', missing);
+                return false;
+            }
+            return true;
+        }
+
+        async function prepareOfflineCache() {
+            if (!window.navigator.serviceWorker) {
+                setOfflineStatus(false);
+                showCacheError('อุปกรณ์หรือ browser นี้ไม่รองรับ Service Worker');
+                return;
+            }
+
+            try {
+                if (!navigator.serviceWorker.controller) {
+                    const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+                    console.log('SW registered:', registration.scope);
+                }
+
+                await navigator.serviceWorker.ready;
+
+                const cacheReady = await verifyOfflineCache();
+                setOfflineStatus(cacheReady);
+
+                if (cacheReady) {
+                    hideCacheLoader();
+                } else {
+                    showCacheError('cache ยังไม่ครบ กรุณาต่ออินเทอร์เน็ตแล้วเปิดหน้านี้ใหม่อีกครั้ง');
+                }
+            } catch (err) {
+                console.warn('SW registration failed:', err);
+                setOfflineStatus(false);
+                showCacheError('ติดตั้ง cache ไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่');
+            }
+        }
+
+        window.addEventListener('load', prepareOfflineCache);
     </script>
 </body>
 </html>
