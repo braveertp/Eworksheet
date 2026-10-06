@@ -2040,16 +2040,16 @@ function applyDynamicTolerance() {
     const isCatII = cat.includes('II');
 
     const zoneDef = {
-        zone1: { maxUA: 30, nmMin: 4,     nmMax: 11,    tol: "≤±30μA / 11–4NM" },
+        zone1: { maxUA: 30, nmMin: 4.00,     nmMax: 11.00,    tol: "≤±30μA / 11–4NM" },
         zone2: {
             maxUA: isCatII ? 5 : 15,
-            nmMin: 0.576, nmMax: 4,
+            nmMin: 0.576, nmMax: 3.99,
             tol: isCatII ? "≤5μA / 4–0.576NM" : "≤15μA / 4–0.576NM"
         },
         zone3: {
             maxUA: isCatII ? 5 : 15,
-            nmMin: isCatII ? 0 : 0.3, nmMax: 0.576,
-            tol: isCatII ? "≤5μA / 0.576–0NM" : "≤15μA / 0.576–0.3NM"
+            nmMin: isCatII ? 0 : 0.10, nmMax: 0.575,
+            tol: isCatII ? "≤5μA / 0.576-0NM" : "≤15μA / 0.576NM-Point C"
         }
     };
 
@@ -2063,19 +2063,19 @@ function applyDynamicTolerance() {
     const gpZoneDef = {
         zone1: {
             maxUA: 30,
-            nmMin: 4, nmMax: 11,
+            nmMin: 4.00, nmMax: 11.00,
             tol: "≤±30μA / 11–4NM"
         },
         zone2: {
             maxUA: 30,
-            nmMin: 0.576, nmMax: 4,
+            nmMin: 0.576, nmMax: 3.99,
             tol: "≤±30μA / 4–0.576NM"
         },
         zone3: {
             maxUA: isCatII ? 20 : 30,
-            nmMin: isCatII ? 0 : 0.3,
-            nmMax: 0.576,
-            tol: isCatII ? "≤±20μA / 0.576–0NM" : "≤±30μA / 0.576–0.3NM"
+            nmMin: isCatII ? 0 : 0.10,
+            nmMax: 0.575,
+            tol: isCatII ? "≤±20μA / 0.576–0NM" : "≤±30μA / 0.576NM-Point C"
         }
     };
 
