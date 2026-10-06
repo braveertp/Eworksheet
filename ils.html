@@ -1533,6 +1533,7 @@ function renderSubFields(containerId, system, profile, cid) {
                     &#9664; LEFT
                 </button>
                 <input type="text" inputmode="decimal" id="${cid}-colr_angle" name="colr_angle" value="8"
+                    data-numpad="true"
                     onblur="formatColrAngle(this)"
                     class="w-20 py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
                 <button type="button" id="${cid}-dir-right"
@@ -2603,6 +2604,7 @@ function applyDynamicTolerance() {
                     &#9664; LEFT
                 </button>
                 <input type="text" inputmode="decimal" id="field-colr_angle" name="colr_angle" value="8"
+                    data-numpad="true"
                     onblur="formatColrAngle(this)"
                     class="w-20 py-2.5 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
                 <button type="button" id="dir-btn-right"
@@ -3683,6 +3685,11 @@ function handleCategoryChange(el) {
             var raw = el.value.trim();
             if (raw === '') return;
 
+            if (el.name === 'colr_angle') {
+                formatColrAngle(el);
+                return;
+            }
+
             var ctx = getFieldContextForElement(el);
             var field = getField(ctx.system, ctx.profile, ctx.key);
             if (!field) return;
@@ -3728,7 +3735,7 @@ function handleCategoryChange(el) {
             closeNumpad();
         };
 
-        // Intercept focus on inputs inside .horizontal-field or init modal
+        // Intercept focus on inputs inside .horizontal-field, init modal, or marked custom fields
         document.addEventListener('focusin', function(e) {
             var inp = e.target;
             if (!inp || inp.tagName !== 'INPUT') return;
@@ -3737,7 +3744,8 @@ function handleCategoryChange(el) {
                 inp.type === 'date') return;
             var inHF   = !!inp.closest('.horizontal-field');
             var isInit = inp.id === 'init-width' || inp.id === 'init-angle';
-            if (!inHF && !isInit) return;
+            var usesNumpad = inp.dataset.numpad === 'true';
+            if (!inHF && !isInit && !usesNumpad) return;
 
             inp.setAttribute('readonly', 'readonly');
             inp.blur();
