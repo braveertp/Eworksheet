@@ -1444,6 +1444,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 placeholder="μA / °"
                 oninput="validateSubClearance(this)"
                 onblur="formatSubClearanceBlur(this)"
+                data-format-fn="formatSubClearanceBlur"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
@@ -1452,6 +1453,8 @@ function renderSubFields(containerId, system, profile, cid) {
                     <input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                         oninput="validateSubAlignment(this, '${cid}', '${key}')"
                         onblur="formatSubAlignmentBlur(this, '${cid}', '${key}')"
+                        data-format-fn="formatSubAlignmentBlur"
+                        data-format-args="${cid}|${key}"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
                         data-allow-sign="true"
                         class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
@@ -1462,6 +1465,8 @@ function renderSubFields(containerId, system, profile, cid) {
                 placeholder="μA / NM"
                 oninput="validateSubZone(this, '${cid}', '${key}')"
                 onblur="formatSubZoneBlur(this, '${cid}', '${key}')"
+                data-format-fn="formatSubZoneBlur"
+                data-format-args="${cid}|${key}"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (hasToleranceSwitch) {
@@ -1472,6 +1477,8 @@ function renderSubFields(containerId, system, profile, cid) {
             inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                 oninput="validateSubInput(this, '${system}', '${profile}', '${key}')"
                 onblur="formatSubNumericBlur(this, '${system}', '${profile}', '${key}')"
+                data-format-fn="formatSubNumericBlur"
+                data-format-args="${system}|${profile}|${key}"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
@@ -2501,6 +2508,7 @@ function applyDynamicTolerance() {
                 placeholder="μA / °"
                 oninput="validateClearanceInput(this)"
                 onblur="formatClearanceBlur(this)"
+                data-format-fn="formatClearanceBlur"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
@@ -2509,6 +2517,7 @@ function applyDynamicTolerance() {
                     <input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                         oninput="validateAlignmentInput(this)"
                         onblur="formatAlignmentBlur(this)"
+                        data-format-fn="formatAlignmentBlur"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
                         data-allow-sign="true"
                         class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
@@ -2519,12 +2528,16 @@ function applyDynamicTolerance() {
                 placeholder="μA / NM"
                 oninput="validateZoneInput(this,'${key}')"
                 onblur="formatZoneBlur(this,'${key}')"
+                data-format-fn="formatZoneBlur"
+                data-format-args="${key}"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                 oninput="validateInput(this,'${currentSystem}','${profile}','${key}')"
                 onblur="formatNumericBlur(this,'${currentSystem}','${profile}','${key}')"
+                data-format-fn="formatNumericBlur"
+                data-format-args="${currentSystem}|${profile}|${key}"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
@@ -3525,6 +3538,12 @@ function handleCategoryChange(el) {
             elById('custom-numpad').classList.remove('open');
             if (_active) {
                 _active.classList.remove('numpad-active-input');
+                // Run format-on-blur logic (numpad never triggers real blur)
+                var formatFn = _active.dataset.formatFn;
+                if (formatFn && window[formatFn]) {
+                    var args = (_active.dataset.formatArgs || '').split('|').filter(Boolean);
+                    window[formatFn].apply(null, [_active].concat(args));
+                }
                 _active.dispatchEvent(new Event('change', {bubbles: true}));
                 _active = null;
             }
