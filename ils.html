@@ -1223,6 +1223,65 @@
             validateSubZone(el, cid, key);
         }
 
+        function formatAndValidateFieldForReport(el, field, context = {}) {
+            if (!el || !field) return '';
+
+            const raw = el.value.trim();
+            const system = context.system || el.dataset.system || currentSystem;
+            const profile = context.profile || el.dataset.profile || document.getElementById('profile-select')?.value || '';
+            const key = context.key || el.dataset.fieldKey || el.name || '';
+            const cid = context.cid || el.dataset.cid || '';
+
+            if (raw === '') {
+                el.classList.remove('val-pass', 'val-fail');
+                return '';
+            }
+
+            if (field.type === 'clearance') {
+                const parts = raw.split('/');
+                if (parts.length === 2) {
+                    const uA = parseFloat(parts[0]);
+                    const angle = parseFloat(parts[1]);
+                    if (!isNaN(uA) && !isNaN(angle)) {
+                        el.value = `${Math.round(uA)}/${Math.round(angle)}`;
+                    }
+                }
+                if (cid) validateSubClearance(el);
+                else validateClearanceInput(el);
+                return el.value.trim();
+            }
+
+            if (field.type === 'zone') {
+                const parts = raw.split('/');
+                if (parts.length === 2) {
+                    const uA = parseFloat(parts[0]);
+                    const nm = parseFloat(parts[1]);
+                    if (!isNaN(uA) && !isNaN(nm)) {
+                        el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
+                    }
+                }
+                if (cid) validateSubZone(el, cid, key);
+                else validateZoneInput(el, key);
+                return el.value.trim();
+            }
+
+            const val = parseFloat(raw);
+            if (isNaN(val)) {
+                el.classList.remove('val-pass', 'val-fail');
+                return raw;
+            }
+
+            el.value = parseFloat(customRound(val, 2)).toFixed(2);
+            if (field.type === 'alignment') {
+                if (cid) validateSubAlignment(el, cid, key);
+                else validateAlignmentInput(el);
+            } else {
+                if (cid) validateSubInput(el, system, profile, key);
+                else validateInput(el, system, profile, key);
+            }
+            return el.value.trim();
+        }
+
         const PROFILE_OPTIONS = {
             LOC: [
                 { group: 'Clearance & Width / Alignment', options: [
@@ -1444,14 +1503,14 @@ function renderSubFields(containerId, system, profile, cid) {
                 placeholder="μA / °"
                 data-field-type="clearance"
                 data-cid="${cid}"
-                oninput="validateSubClearance(this)"
+                oninput="handlePendingClearanceInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
             inputHtml = `
                 <div class="flex items-center gap-1 min-w-0">
                     <input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
-                        oninput="validateSubAlignment(this, '${cid}', '${key}')"
+                        oninput="clearValidationState(this)"
                         data-field-type="alignment"
                         data-field-key="${key}"
                         data-cid="${cid}"
@@ -1466,7 +1525,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-field-type="zone"
                 data-field-key="${key}"
                 data-cid="${cid}"
-                oninput="validateSubZone(this, '${cid}', '${key}')"
+                oninput="handlePendingZoneInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (hasToleranceSwitch) {
@@ -1480,7 +1539,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-profile="${profile}"
                 data-field-key="${key}"
                 data-cid="${cid}"
-                oninput="validateSubInput(this, '${system}', '${profile}', '${key}')"
+                oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
@@ -2094,6 +2153,26 @@ function applyDynamicTolerance() {
             handleFieldEnter(event, nextId);
         }
 
+        function clearValidationState(el) {
+            if (el) el.classList.remove('val-pass', 'val-fail');
+        }
+
+        function handlePendingClearanceInput(el) {
+            const raw = el.value.trim();
+            if (/^\d{3}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
+                el.value = raw + '/';
+            }
+            clearValidationState(el);
+        }
+
+        function handlePendingZoneInput(el) {
+            const raw = el.value.trim();
+            if (/^\d{2}$/.test(raw) && !raw.includes('/') && !el.dataset.deletingSlash) {
+                el.value = raw + '/';
+            }
+            clearValidationState(el);
+        }
+
         function handleFieldEnter(event, nextId) {
     if (event.key === 'Enter') {
         event.preventDefault();
@@ -2395,11 +2474,13 @@ function applyDynamicTolerance() {
                 }
                 if (f?.type === 'checkbox' || f?.toleranceSwitch) {
                     subData.values[key] = el.checked ? 'PASS' : 'FAIL';
-                } else if (f?.type === 'clearance' || f?.type === 'zone') {
-                    subData.values[key] = el.value.trim();
                 } else {
-                    const raw = el.value.trim();
-                    subData.values[key] = raw === '' ? '' : customRound(parseFloat(raw), 2);
+                    subData.values[key] = formatAndValidateFieldForReport(el, f, {
+                        system: subSystem,
+                        profile: subProfile,
+                        key,
+                        cid
+                    });
                 }
             });
             // GP COLR dir
@@ -2509,14 +2590,14 @@ function applyDynamicTolerance() {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                 placeholder="μA / °"
                 data-field-type="clearance"
-                oninput="validateClearanceInput(this)"
+                oninput="handlePendingClearanceInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
             inputHtml = `
                 <div class="flex items-center gap-1 min-w-0">
                     <input type="text" inputmode="decimal" id="field-${key}" name="${key}"
-                        oninput="validateAlignmentInput(this)"
+                        oninput="clearValidationState(this)"
                         data-field-type="alignment"
                         data-field-key="${key}"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
@@ -2529,7 +2610,7 @@ function applyDynamicTolerance() {
                 placeholder="μA / NM"
                 data-field-type="zone"
                 data-field-key="${key}"
-                oninput="validateZoneInput(this,'${key}')"
+                oninput="handlePendingZoneInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else {
@@ -2538,7 +2619,7 @@ function applyDynamicTolerance() {
                 data-system="${currentSystem}"
                 data-profile="${profile}"
                 data-field-key="${key}"
-                oninput="validateInput(this,'${currentSystem}','${profile}','${key}')"
+                oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
@@ -2657,11 +2738,12 @@ function applyDynamicTolerance() {
         if (!el) return;
         if (key === 'colr_dir') {
             runData.values[key] = el.value;
-        } else if (field?.type === 'clearance' || field?.type === 'zone') {
-            runData.values[key] = el.value.trim();
         } else {
-            const raw = el.value.trim();
-            runData.values[key] = raw === '' ? '' : customRound(parseFloat(raw), 2);
+            runData.values[key] = formatAndValidateFieldForReport(el, field, {
+                system: currentSystem,
+                profile,
+                key
+            });
         }
     });
     // colr_dir for GP COLR (hidden input)
