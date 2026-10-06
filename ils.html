@@ -1411,8 +1411,8 @@
             modulation: { label: "Modulation", tol: "38.0 - 42.0%", min: 38.0, max: 42.0 },
             alignment: { label: "Alignment", tol: "±5μA (L/R)", type: "alignment", min: -5, max: 5 },
             zone1: { label: "Course Structure - Z1", tol: "≤±30μA / 11–4NM", type: "zone", maxUA: 30, nmMin: 4.00, nmMax: 11 },
-            zone2: { label: "Course Structure - Z2", tol: "≤±15μA / 4–0.576NM", type: "zone", maxUA: 15, nmMin: 0.576, nmMax: 3.99 },
-            zone3: { label: "Course Structure - Z3", tol: "≤±15μA / 0.576NM–Point C", type: "zone", maxUA: 15, nmMin: 0.10, nmMax: 0.576 }
+            zone2: { label: "Course Structure - Z2", tol: "≤±15μA / 4–0.58NM", type: "zone", maxUA: 15, nmMin: 0.58, nmMax: 3.99 },
+            zone3: { label: "Course Structure - Z3", tol: "≤±15μA / 0.58NM–Point C", type: "zone", maxUA: 15, nmMin: 0.10, nmMax: 0.57 }
         },
         MN: {
             narrow: { label: "Narrow Width", tol: "Dynamic", min: 0, max: 0 },
@@ -1451,8 +1451,8 @@
             modulation: { label: "Modulation", tol: "75.0 - 85.0%", min: 75.0, max: 85.0 },
             angle: { label: "Path Angle", tol: "Dynamic", min: 0, max: 0 },
             zone1: { label: "Path Structure - Z1", tol: "≤±30μA / 11–4NM", type: "zone", maxUA: 30, nmMin: 4.00, nmMax: 11 },
-            zone2: { label: "Path Structure - Z2", tol: "≤±30μA / 4–0.576NM", type: "zone", maxUA: 30, nmMin: 0.576, nmMax: 3.99 },
-            zone3: { label: "Path Structure - Z3", tol: "≤±30μA / 0.576NM–Point C", type: "zone", maxUA: 30, nmMin: 0.10, nmMax: 0.576 }
+            zone2: { label: "Path Structure - Z2", tol: "≤±30μA / 4–0.58NM", type: "zone", maxUA: 30, nmMin: 0.58, nmMax: 3.99 },
+            zone3: { label: "Path Structure - Z3", tol: "≤±30μA / 0.58NM–Point C", type: "zone", maxUA: 30, nmMin: 0.10, nmMax: 0.57 }
         },
         MN: {
             narrow: { label: "Narrow Width", tol: "Dynamic", min: 0, max: 0 },
@@ -2043,13 +2043,13 @@ function applyDynamicTolerance() {
         zone1: { maxUA: 30, nmMin: 4.00,     nmMax: 11.00,    tol: "≤±30μA / 11–4NM" },
         zone2: {
             maxUA: isCatII ? 5 : 15,
-            nmMin: 0.576, nmMax: 3.99,
-            tol: isCatII ? "≤5μA / 4–0.576NM" : "≤15μA / 4–0.576NM"
+            nmMin: 0.58, nmMax: 3.99,
+            tol: isCatII ? "≤5μA / 4–0.58NM" : "≤15μA / 4–0.58NM"
         },
         zone3: {
             maxUA: isCatII ? 5 : 15,
-            nmMin: isCatII ? 0 : 0.10, nmMax: 0.575,
-            tol: isCatII ? "≤5μA / 0.576-0NM" : "≤15μA / 0.576NM-Point C"
+            nmMin: isCatII ? 0 : 0.10, nmMax: 0.57,
+            tol: isCatII ? "≤5μA / 0.58-0NM" : "≤15μA / 0.58NM-Point C"
         }
     };
 
@@ -2068,14 +2068,14 @@ function applyDynamicTolerance() {
         },
         zone2: {
             maxUA: 30,
-            nmMin: 0.576, nmMax: 3.99,
-            tol: "≤±30μA / 4–0.576NM"
+            nmMin: 0.58, nmMax: 3.99,
+            tol: "≤±30μA / 4–0.58NM"
         },
         zone3: {
             maxUA: isCatII ? 20 : 30,
             nmMin: isCatII ? 0 : 0.10,
-            nmMax: 0.575,
-            tol: isCatII ? "≤±20μA / 0.576–0NM" : "≤±30μA / 0.576NM-Point C"
+            nmMax: 0.57,
+            tol: isCatII ? "≤±20μA / 0.58–0NM" : "≤±30μA / 0.58NM-Point C"
         }
     };
 
