@@ -1442,9 +1442,9 @@ function renderSubFields(containerId, system, profile, cid) {
         } else if (isClearance) {
             inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                 placeholder="μA / °"
+                data-field-type="clearance"
+                data-cid="${cid}"
                 oninput="validateSubClearance(this)"
-                onblur="formatSubClearanceBlur(this)"
-                data-format-fn="formatSubClearanceBlur"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
@@ -1452,9 +1452,9 @@ function renderSubFields(containerId, system, profile, cid) {
                 <div class="flex items-center gap-1 min-w-0">
                     <input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                         oninput="validateSubAlignment(this, '${cid}', '${key}')"
-                        onblur="formatSubAlignmentBlur(this, '${cid}', '${key}')"
-                        data-format-fn="formatSubAlignmentBlur"
-                        data-format-args="${cid}|${key}"
+                        data-field-type="alignment"
+                        data-field-key="${key}"
+                        data-cid="${cid}"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
                         data-allow-sign="true"
                         class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
@@ -1463,10 +1463,10 @@ function renderSubFields(containerId, system, profile, cid) {
         } else if (isZone) {
             inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                 placeholder="μA / NM"
+                data-field-type="zone"
+                data-field-key="${key}"
+                data-cid="${cid}"
                 oninput="validateSubZone(this, '${cid}', '${key}')"
-                onblur="formatSubZoneBlur(this, '${cid}', '${key}')"
-                data-format-fn="formatSubZoneBlur"
-                data-format-args="${cid}|${key}"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (hasToleranceSwitch) {
@@ -1475,10 +1475,12 @@ function renderSubFields(containerId, system, profile, cid) {
                 class="w-5 h-5 rounded-full accent-green-500 cursor-pointer" autocomplete="off">`;
         } else {
             inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
+                data-field-type="numeric"
+                data-system="${system}"
+                data-profile="${profile}"
+                data-field-key="${key}"
+                data-cid="${cid}"
                 oninput="validateSubInput(this, '${system}', '${profile}', '${key}')"
-                onblur="formatSubNumericBlur(this, '${system}', '${profile}', '${key}')"
-                data-format-fn="formatSubNumericBlur"
-                data-format-args="${system}|${profile}|${key}"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
@@ -2506,9 +2508,8 @@ function applyDynamicTolerance() {
         } else if (isClearance) {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                 placeholder="μA / °"
+                data-field-type="clearance"
                 oninput="validateClearanceInput(this)"
-                onblur="formatClearanceBlur(this)"
-                data-format-fn="formatClearanceBlur"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
@@ -2516,8 +2517,8 @@ function applyDynamicTolerance() {
                 <div class="flex items-center gap-1 min-w-0">
                     <input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                         oninput="validateAlignmentInput(this)"
-                        onblur="formatAlignmentBlur(this)"
-                        data-format-fn="formatAlignmentBlur"
+                        data-field-type="alignment"
+                        data-field-key="${key}"
                         onkeydown="handleFieldEnter(event, '${nextId}')"
                         data-allow-sign="true"
                         class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
@@ -2526,18 +2527,18 @@ function applyDynamicTolerance() {
         } else if (isZone) {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                 placeholder="μA / NM"
+                data-field-type="zone"
+                data-field-key="${key}"
                 oninput="validateZoneInput(this,'${key}')"
-                onblur="formatZoneBlur(this,'${key}')"
-                data-format-fn="formatZoneBlur"
-                data-format-args="${key}"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
+                data-field-type="numeric"
+                data-system="${currentSystem}"
+                data-profile="${profile}"
+                data-field-key="${key}"
                 oninput="validateInput(this,'${currentSystem}','${profile}','${key}')"
-                onblur="formatNumericBlur(this,'${currentSystem}','${profile}','${key}')"
-                data-format-fn="formatNumericBlur"
-                data-format-args="${currentSystem}|${profile}|${key}"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         }
@@ -3538,14 +3539,63 @@ function handleCategoryChange(el) {
             elById('custom-numpad').classList.remove('open');
             if (_active) {
                 _active.classList.remove('numpad-active-input');
-                // Run format-on-blur logic (numpad never triggers real blur)
-                var formatFn = _active.dataset.formatFn;
-                if (formatFn && window[formatFn]) {
-                    var args = (_active.dataset.formatArgs || '').split('|').filter(Boolean);
-                    window[formatFn].apply(null, [_active].concat(args));
-                }
+                applyFormatAndValidate(_active);
                 _active.dispatchEvent(new Event('change', {bubbles: true}));
                 _active = null;
+            }
+        }
+
+        function applyFormatAndValidate(el) {
+            var raw = el.value.trim();
+            if (raw === '') return;
+
+            var fieldType = el.dataset.fieldType || '';
+            var system    = el.dataset.system    || '';
+            var profile   = el.dataset.profile   || '';
+            var fieldKey  = el.dataset.fieldKey  || '';
+            var cid       = el.dataset.cid       || '';
+
+            if (fieldType === 'clearance') {
+                // Format: integer/integer
+                var parts = raw.split('/');
+                if (parts.length === 2) {
+                    var uA = parseFloat(parts[0]), angle = parseFloat(parts[1]);
+                    if (!isNaN(uA) && !isNaN(angle)) {
+                        el.value = Math.round(uA) + '/' + Math.round(angle);
+                    }
+                }
+                if (cid) validateSubClearance(el);
+                else     validateClearanceInput(el);
+
+            } else if (fieldType === 'zone') {
+                // Format: integer/2-decimal
+                var parts = raw.split('/');
+                if (parts.length === 2) {
+                    var uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
+                    if (!isNaN(uA) && !isNaN(nm)) {
+                        el.value = Math.round(uA) + '/' + parseFloat(customRound(nm, 2)).toFixed(2);
+                    }
+                }
+                if (cid) validateSubZone(el, cid, fieldKey);
+                else     validateZoneInput(el, fieldKey);
+
+            } else if (fieldType === 'alignment') {
+                // Format: 2-decimal with sign
+                var val = parseFloat(raw);
+                if (!isNaN(val)) {
+                    el.value = parseFloat(customRound(val, 2)).toFixed(2);
+                }
+                if (cid) validateSubAlignment(el, cid, fieldKey);
+                else     validateAlignmentInput(el);
+
+            } else if (fieldType === 'numeric') {
+                // Format: 2-decimal
+                var val = parseFloat(raw);
+                if (!isNaN(val)) {
+                    el.value = parseFloat(customRound(val, 2)).toFixed(2);
+                }
+                if (cid) validateSubInput(el, system, profile, fieldKey);
+                else     validateInput(el, system, profile, fieldKey);
             }
         }
 
