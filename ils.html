@@ -1263,8 +1263,7 @@
         }
 
         function formatAlignmentForReport(value) {
-            const abs = Math.abs(value);
-            const formatted = Number.isInteger(abs) ? String(abs) : formatDecimalForReport(abs, 2);
+            const formatted = String(Math.round(Math.abs(value)));
             if (value > 0) return `${formatted}L`;
             if (value < 0) return `${formatted}R`;
             return 'C/L';
@@ -1411,7 +1410,7 @@
         AS: {
             modulation: { label: "Modulation", tol: "38.0 - 42.0%", min: 38.0, max: 42.0 },
             alignment: { label: "Alignment", tol: "±5μA (L/R)", type: "alignment", min: -5, max: 5 },
-            zone1: { label: "Course Structure - Z1", tol: "≤±30μA / ≤4NM", type: "zone", maxUA: 30, nmMin: 4, nmMax: 11 },
+            zone1: { label: "Course Structure - Z1", tol: "≤±30μA / 11–4NM", type: "zone", maxUA: 30, nmMin: 4, nmMax: 11 },
             zone2: { label: "Course Structure - Z2", tol: "≤±15μA / 4–0.576NM", type: "zone", maxUA: 15, nmMin: 0.576, nmMax: 4 },
             zone3: { label: "Course Structure - Z3", tol: "≤±15μA / 0.576–0.3NM", type: "zone", maxUA: 15, nmMin: 0.3, nmMax: 0.576 }
         },
@@ -1706,7 +1705,7 @@ function validateSubZone(el, cid, key) {
         field = getField(m[1], m[2], key);
     }
     if (!field || field.maxUA === undefined) return;
-    const pass = uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+    const pass = Math.abs(uA) <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
     el.classList.toggle('val-pass', pass);
     el.classList.toggle('val-fail', !pass);
 }
@@ -1856,7 +1855,7 @@ function renderSubRunCard(sub, runId) {
         } else if (field?.type === 'zone') {
             const parts = String(raw).split('/');
             const uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
-            colorClass = (!isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax) ? 'text-green-600' : 'text-red-600';
+            colorClass = (!isNaN(uA) && !isNaN(nm) && Math.abs(uA) <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax) ? 'text-green-600' : 'text-red-600';
         } else if (field?.type === 'alignment') {
             const parsed = parseAlignmentReportValue(raw);
             const val = parsed.value;
@@ -2017,7 +2016,7 @@ function applyDynamicTolerance() {
     const isCatII = cat.includes('II');
 
     const zoneDef = {
-        zone1: { maxUA: 30, nmMin: 0,     nmMax: 4,     tol: "≤30μA / ≤4NM" },
+        zone1: { maxUA: 30, nmMin: 4,     nmMax: 11,    tol: "≤±30μA / 11–4NM" },
         zone2: {
             maxUA: isCatII ? 5 : 15,
             nmMin: 0.576, nmMax: 4,
@@ -2261,7 +2260,7 @@ function applyDynamicTolerance() {
             const profile = document.getElementById('profile-select').value;
             const field = getField(currentSystem, profile, key);
             if (!field) return;
-            const pass = uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+            const pass = Math.abs(uA) <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
             el.classList.toggle('val-pass', pass);
             el.classList.toggle('val-fail', !pass);
         }
@@ -2898,7 +2897,7 @@ function applyDynamicTolerance() {
                         const parts = String(raw).split('/');
                         const uA = parseFloat(parts[0]);
                         const nm = parseFloat(parts[1]);
-                        const pass = !isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+                        const pass = !isNaN(uA) && !isNaN(nm) && Math.abs(uA) <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
                         colorClass = pass ? 'text-green-600' : 'text-red-600';
                     } else if (field?.type === 'alignment') {
                         const parsed = parseAlignmentReportValue(raw);
@@ -3086,7 +3085,7 @@ function confirmExport() {
             } else if (field?.type === 'zone') {
                 const parts = String(raw).split('/');
                 const uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
-                const pass = !isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
+                const pass = !isNaN(uA) && !isNaN(nm) && Math.abs(uA) <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
                 cls = pass ? 'val-pass-print' : 'val-fail-print';
             } else if (field?.type === 'alignment') {
                 const parsed = parseAlignmentReportValue(raw);
