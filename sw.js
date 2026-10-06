@@ -3,7 +3,7 @@
    Cache-First for all assets
    ============================================================ */
 
-const CACHE_NAME = 'eworksheet-v5';
+const CACHE_NAME = 'eworksheet-v6';
 
 const PRECACHE_URLS = [
   './',

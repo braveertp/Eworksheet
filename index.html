@@ -240,8 +240,8 @@
     <div id="cache-loader" class="cache-loader" role="status" aria-live="polite">
         <div class="cache-loader-panel">
             <div class="cache-loader-spinner" aria-hidden="true"></div>
-            <div id="cache-loader-title" class="cache-loader-title">กำลังเตรียมใช้งานออฟไลน์</div>
-            <div id="cache-loader-text" class="cache-loader-text">กำลังติดตั้ง cache ให้ครบถ้วน ก่อนเปิดหน้าใช้งาน</div>
+            <div id="cache-loader-title" class="cache-loader-title">Preparing Offline Mode</div>
+            <div id="cache-loader-text" class="cache-loader-text">Installing required cache files before the app is ready.</div>
         </div>
     </div>
 
@@ -368,7 +368,7 @@
         function showCacheError(message) {
             const loader = document.getElementById('cache-loader');
             loader.classList.add('cache-loader-error');
-            document.getElementById('cache-loader-title').textContent = 'ยังใช้งานออฟไลน์ไม่ได้';
+            document.getElementById('cache-loader-title').textContent = 'Offline Mode Is Not Ready';
             document.getElementById('cache-loader-text').textContent = message;
         }
 
@@ -392,7 +392,7 @@
         async function prepareOfflineCache() {
             if (!window.navigator.serviceWorker) {
                 setOfflineStatus(false);
-                showCacheError('อุปกรณ์หรือ browser นี้ไม่รองรับ Service Worker');
+                showCacheError('This device or browser does not support Service Workers.');
                 return;
             }
 
@@ -410,12 +410,12 @@
                 if (cacheReady) {
                     hideCacheLoader();
                 } else {
-                    showCacheError('cache ยังไม่ครบ กรุณาต่ออินเทอร์เน็ตแล้วเปิดหน้านี้ใหม่อีกครั้ง');
+                    showCacheError('The offline cache is incomplete. Please connect to the internet and reopen this page.');
                 }
             } catch (err) {
                 console.warn('SW registration failed:', err);
                 setOfflineStatus(false);
-                showCacheError('ติดตั้ง cache ไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่');
+                showCacheError('Cache installation failed. Please check your connection and try again.');
             }
         }
 
