@@ -1176,7 +1176,7 @@
             const uA = parseFloat(parts[0]);
             const nm = parseFloat(parts[1]);
             if (isNaN(uA) || isNaN(nm)) return;
-            el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
+            el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 1)).toFixed(1)}`;
             validateZoneInput(el, key);
         }
 
@@ -1219,18 +1219,75 @@
             const uA = parseFloat(parts[0]);
             const nm = parseFloat(parts[1]);
             if (isNaN(uA) || isNaN(nm)) return;
-            el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
+            el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 1)).toFixed(1)}`;
             validateSubZone(el, cid, key);
+        }
+
+        function getFieldContextForElement(el, context = {}) {
+            const cid = context.cid || el.dataset.cid || '';
+            let system = context.system || el.dataset.system || '';
+            let profile = context.profile || el.dataset.profile || '';
+            const key = context.key || el.dataset.fieldKey || el.name || '';
+
+            if (cid === 'newrun-sub') {
+                const section = document.getElementById('sub-run-section');
+                system = system || section?.dataset?.subSystem || '';
+                profile = profile || section?.dataset?.subProfile || '';
+            } else if (cid) {
+                const m = cid.match(/^sub-\d+-([A-Z]+)-([A-Z0-9]+)$/);
+                if (m) {
+                    system = system || m[1];
+                    profile = profile || m[2];
+                }
+            }
+
+            system = system || currentSystem;
+            profile = profile || document.getElementById('profile-select')?.value || '';
+
+            return { system, profile, key, cid };
+        }
+
+        function getReportDecimals(field, key) {
+            if (key === 'modulation' || key === 'sym') return 1;
+            if (['width', 'angle', 'narrow', 'wide', 'high', 'low', 'sbp'].includes(key)) return 2;
+            if (field?.reportDecimals !== undefined) return field.reportDecimals;
+            return 0;
+        }
+
+        function formatDecimalForReport(value, decimals) {
+            const rounded = parseFloat(customRound(value, decimals));
+            return decimals > 0 ? rounded.toFixed(decimals) : rounded.toFixed(0);
+        }
+
+        function formatAlignmentForReport(value) {
+            const abs = Math.abs(value);
+            const formatted = Number.isInteger(abs) ? String(abs) : formatDecimalForReport(abs, 2);
+            if (value > 0) return `${formatted}L`;
+            if (value < 0) return `${formatted}R`;
+            return 'C/L';
+        }
+
+        function parseAlignmentReportValue(raw) {
+            const text = String(raw).trim().toUpperCase();
+            if (text === 'C/L' || text === 'CL' || text === '0') {
+                return { value: 0, display: 'C/L' };
+            }
+            const match = text.match(/^([+-]?\d+(?:\.\d+)?)([LR])?$/);
+            if (!match) return { value: NaN, display: text };
+
+            let value = parseFloat(match[1]);
+            const dir = match[2];
+            if (dir === 'R') value = -Math.abs(value);
+            if (dir === 'L') value = Math.abs(value);
+
+            return { value, display: formatAlignmentForReport(value) };
         }
 
         function formatAndValidateFieldForReport(el, field, context = {}) {
             if (!el || !field) return '';
 
             const raw = el.value.trim();
-            const system = context.system || el.dataset.system || currentSystem;
-            const profile = context.profile || el.dataset.profile || document.getElementById('profile-select')?.value || '';
-            const key = context.key || el.dataset.fieldKey || el.name || '';
-            const cid = context.cid || el.dataset.cid || '';
+            const { system, profile, key, cid } = getFieldContextForElement(el, context);
 
             if (raw === '') {
                 el.classList.remove('val-pass', 'val-fail');
@@ -1257,12 +1314,25 @@
                     const uA = parseFloat(parts[0]);
                     const nm = parseFloat(parts[1]);
                     if (!isNaN(uA) && !isNaN(nm)) {
-                        el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
+                        el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 1)).toFixed(1)}`;
                     }
                 }
                 if (cid) validateSubZone(el, cid, key);
                 else validateZoneInput(el, key);
                 return el.value.trim();
+            }
+
+            if (field.type === 'alignment') {
+                const parsed = parseAlignmentReportValue(raw);
+                const val = parsed.value;
+                if (isNaN(val)) {
+                    el.classList.remove('val-pass', 'val-fail');
+                    return raw;
+                }
+                el.value = parseFloat(customRound(val, 2)).toFixed(2);
+                if (cid) validateSubAlignment(el, cid, key);
+                else validateAlignmentInput(el);
+                return formatAlignmentForReport(val);
             }
 
             const val = parseFloat(raw);
@@ -1271,14 +1341,9 @@
                 return raw;
             }
 
-            el.value = parseFloat(customRound(val, 2)).toFixed(2);
-            if (field.type === 'alignment') {
-                if (cid) validateSubAlignment(el, cid, key);
-                else validateAlignmentInput(el);
-            } else {
-                if (cid) validateSubInput(el, system, profile, key);
-                else validateInput(el, system, profile, key);
-            }
+            el.value = formatDecimalForReport(val, getReportDecimals(field, key));
+            if (cid) validateSubInput(el, system, profile, key);
+            else validateInput(el, system, profile, key);
             return el.value.trim();
         }
 
@@ -1507,18 +1572,14 @@ function renderSubFields(containerId, system, profile, cid) {
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
-            inputHtml = `
-                <div class="flex items-center gap-1 min-w-0">
-                    <input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
-                        oninput="clearValidationState(this)"
-                        data-field-type="alignment"
-                        data-field-key="${key}"
-                        data-cid="${cid}"
-                        onkeydown="handleFieldEnter(event, '${nextId}')"
-                        data-allow-sign="true"
-                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
-                    <span id="${cid}-badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
-                </div>`;
+            inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
+                oninput="clearValidationState(this)"
+                data-field-type="alignment"
+                data-field-key="${key}"
+                data-cid="${cid}"
+                onkeydown="handleFieldEnter(event, '${nextId}')"
+                data-allow-sign="true"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isZone) {
             inputHtml = `<input type="text" inputmode="decimal" id="${cid}-field-${key}" name="${key}"
                 placeholder="μA / NM"
@@ -1603,20 +1664,13 @@ function validateSubCheckbox(el, cid, key) {
 }
 function validateSubAlignment(el, cid, key) {
     const val = parseFloat(el.value);
-    const badge = document.getElementById(`${cid}-badge-${key}`);
     if (isNaN(val)) {
         el.classList.remove('val-pass','val-fail');
-        if (badge) { badge.innerText = '—'; badge.className = 'text-xs font-black w-6 text-slate-400'; }
         return;
     }
-    const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
     const pass = Math.abs(val) <= 5;
     el.classList.toggle('val-pass', pass);
     el.classList.toggle('val-fail', !pass);
-    if (badge) {
-        badge.innerText = dir;
-        badge.className = `text-xs font-black ${val === 0 ? 'w-8' : 'w-6'} ${pass ? 'text-green-600' : 'text-red-600'}`;
-    }
 }
 function validateSubClearance(el) {
     const raw = el.value.trim();
@@ -1746,11 +1800,13 @@ function saveSubRun(runId, subSystem, subProfile, cid) {
         if (!el) return;
         if (f?.type === 'checkbox' || f?.toleranceSwitch) {
             subData.values[key] = el.checked ? 'PASS' : 'FAIL';
-        } else if (f?.type === 'clearance' || f?.type === 'zone') {
-            subData.values[key] = el.value.trim();
         } else {
-            const raw = el.value.trim();
-            subData.values[key] = raw === '' ? '' : customRound(parseFloat(raw), 2);
+            subData.values[key] = formatAndValidateFieldForReport(el, f, {
+                system: subSystem,
+                profile: subProfile,
+                key,
+                cid
+            });
         }
     });
 
@@ -1805,10 +1861,10 @@ function renderSubRunCard(sub, runId) {
             const uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
             colorClass = (!isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax) ? 'text-green-600' : 'text-red-600';
         } else if (field?.type === 'alignment') {
-            const val = parseFloat(raw);
-            const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
+            const parsed = parseAlignmentReportValue(raw);
+            const val = parsed.value;
             colorClass = Math.abs(val) <= 5 ? 'text-green-600' : 'text-red-600';
-            displayVal = val === 0 ? 'C/L' : `${raw} ${dir}`;
+            displayVal = parsed.display;
         } else {
             const val = parseFloat(raw);
             colorClass = field ? (val >= field.min && val <= field.max ? 'text-green-600' : 'text-red-600') : '';
@@ -2228,21 +2284,13 @@ function applyDynamicTolerance() {
 
         function validateAlignmentInput(el) {
             const val = parseFloat(el.value);
-            const badge = document.getElementById('badge-' + el.id.replace('field-', ''));
             if (isNaN(val)) {
                 el.classList.remove('val-pass', 'val-fail');
-                if (badge) { badge.innerText = '—'; badge.className = 'text-xs font-black w-6 text-slate-400'; }
                 return;
             }
-            // + = Left, - = Right, 0 = C/L
-            const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
             const pass = Math.abs(val) <= 5;
             el.classList.toggle('val-pass', pass);
             el.classList.toggle('val-fail', !pass);
-            if (badge) {
-                badge.innerText = dir;
-                badge.className = `text-xs font-black ${val === 0 ? 'w-8' : 'w-6'} ${pass ? 'text-green-600' : 'text-red-600'}`;
-            }
         }
 
         function validateCheckboxInput(el) {
@@ -2594,17 +2642,13 @@ function applyDynamicTolerance() {
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isAlignment) {
-            inputHtml = `
-                <div class="flex items-center gap-1 min-w-0">
-                    <input type="text" inputmode="decimal" id="field-${key}" name="${key}"
-                        oninput="clearValidationState(this)"
-                        data-field-type="alignment"
-                        data-field-key="${key}"
-                        onkeydown="handleFieldEnter(event, '${nextId}')"
-                        data-allow-sign="true"
-                        class="min-w-0 w-full py-2 px-2 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">
-                    <span id="badge-${key}" class="text-xs font-black shrink-0 w-6 text-center text-slate-400">—</span>
-                </div>`;
+            inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
+                oninput="clearValidationState(this)"
+                data-field-type="alignment"
+                data-field-key="${key}"
+                onkeydown="handleFieldEnter(event, '${nextId}')"
+                data-allow-sign="true"
+                class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
         } else if (isZone) {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                 placeholder="μA / NM"
@@ -2878,11 +2922,11 @@ function applyDynamicTolerance() {
                         const pass = !isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
                         colorClass = pass ? 'text-green-600' : 'text-red-600';
                     } else if (field?.type === 'alignment') {
-                        const val = parseFloat(raw);
+                        const parsed = parseAlignmentReportValue(raw);
+                        const val = parsed.value;
                         const pass = Math.abs(val) <= 5;
-                        const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
                         colorClass = pass ? 'text-green-600' : 'text-red-600';
-                        displayVal = val === 0 ? 'C/L' : `${raw} ${dir}`;
+                        displayVal = parsed.display;
                     } else {
                         const val = parseFloat(raw);
                         colorClass = field
@@ -3066,10 +3110,10 @@ function confirmExport() {
                 const pass = !isNaN(uA) && !isNaN(nm) && uA <= field.maxUA && nm >= field.nmMin && nm <= field.nmMax;
                 cls = pass ? 'val-pass-print' : 'val-fail-print';
             } else if (field?.type === 'alignment') {
-                const val = parseFloat(raw);
-                const dir = val > 0 ? 'L' : val < 0 ? 'R' : 'C/L';
+                const parsed = parseAlignmentReportValue(raw);
+                const val = parsed.value;
                 cls = Math.abs(val) <= 5 ? 'val-pass-print' : 'val-fail-print';
-                displayVal = val === 0 ? 'C/L' : `${raw} ${dir}`;
+                displayVal = parsed.display;
             } else {
                 const val = parseFloat(raw);
                 if (field && !isNaN(val)) {
@@ -3631,54 +3675,12 @@ function handleCategoryChange(el) {
             var raw = el.value.trim();
             if (raw === '') return;
 
-            var fieldType = el.dataset.fieldType || '';
-            var system    = el.dataset.system    || '';
-            var profile   = el.dataset.profile   || '';
-            var fieldKey  = el.dataset.fieldKey  || '';
-            var cid       = el.dataset.cid       || '';
+            var ctx = getFieldContextForElement(el);
+            var field = getField(ctx.system, ctx.profile, ctx.key);
+            if (!field) return;
 
-            if (fieldType === 'clearance') {
-                // Format: integer/integer
-                var parts = raw.split('/');
-                if (parts.length === 2) {
-                    var uA = parseFloat(parts[0]), angle = parseFloat(parts[1]);
-                    if (!isNaN(uA) && !isNaN(angle)) {
-                        el.value = Math.round(uA) + '/' + Math.round(angle);
-                    }
-                }
-                if (cid) validateSubClearance(el);
-                else     validateClearanceInput(el);
-
-            } else if (fieldType === 'zone') {
-                // Format: integer/2-decimal
-                var parts = raw.split('/');
-                if (parts.length === 2) {
-                    var uA = parseFloat(parts[0]), nm = parseFloat(parts[1]);
-                    if (!isNaN(uA) && !isNaN(nm)) {
-                        el.value = Math.round(uA) + '/' + parseFloat(customRound(nm, 2)).toFixed(2);
-                    }
-                }
-                if (cid) validateSubZone(el, cid, fieldKey);
-                else     validateZoneInput(el, fieldKey);
-
-            } else if (fieldType === 'alignment') {
-                // Format: 2-decimal with sign
-                var val = parseFloat(raw);
-                if (!isNaN(val)) {
-                    el.value = parseFloat(customRound(val, 2)).toFixed(2);
-                }
-                if (cid) validateSubAlignment(el, cid, fieldKey);
-                else     validateAlignmentInput(el);
-
-            } else if (fieldType === 'numeric') {
-                // Format: 2-decimal
-                var val = parseFloat(raw);
-                if (!isNaN(val)) {
-                    el.value = parseFloat(customRound(val, 2)).toFixed(2);
-                }
-                if (cid) validateSubInput(el, system, profile, fieldKey);
-                else     validateInput(el, system, profile, fieldKey);
-            }
+            var reportValue = formatAndValidateFieldForReport(el, field, ctx);
+            if (field.type === 'alignment') el.value = reportValue;
         }
 
         window.numpadKey = function(k) {
