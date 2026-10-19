@@ -1424,7 +1424,7 @@
         },
         AM: {
             alarm_150: { label: "Alignment Alarm 150", tol: "+15μA", min: 0, max: 15 },
-            alarm_90: { label: "Alignment Alarm 90", tol: "-15μA", min: 0, max: -15 }
+            alarm_90: { label: "Alignment Alarm 90", tol: "-15μA", min: -15, max: 0, allowSign: true }
         },
         COLR: {
             ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
@@ -1606,6 +1606,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-profile="${profile}"
                 data-field-key="${key}"
                 data-cid="${cid}"
+                ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -2671,6 +2672,7 @@ function applyDynamicTolerance() {
                 data-system="${currentSystem}"
                 data-profile="${profile}"
                 data-field-key="${key}"
+                ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
