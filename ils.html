@@ -1583,6 +1583,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 placeholder="μA / °"
                 data-field-type="clearance"
                 data-cid="${cid}"
+                data-next-id="${nextId}"
                 oninput="handlePendingClearanceInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -1592,6 +1593,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-field-type="alignment"
                 data-field-key="${key}"
                 data-cid="${cid}"
+                data-next-id="${nextId}"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 data-allow-sign="true"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -1601,6 +1603,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-field-type="zone"
                 data-field-key="${key}"
                 data-cid="${cid}"
+                data-next-id="${nextId}"
                 oninput="handlePendingZoneInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -1615,6 +1618,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-profile="${profile}"
                 data-field-key="${key}"
                 data-cid="${cid}"
+                data-next-id="${nextId}"
                 ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
@@ -2656,6 +2660,7 @@ function applyDynamicTolerance() {
             inputHtml = `<input type="text" inputmode="decimal" id="field-${key}" name="${key}"
                 placeholder="μA / °"
                 data-field-type="clearance"
+                data-next-id="${nextId}"
                 oninput="handlePendingClearanceInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -2664,6 +2669,7 @@ function applyDynamicTolerance() {
                 oninput="clearValidationState(this)"
                 data-field-type="alignment"
                 data-field-key="${key}"
+                data-next-id="${nextId}"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 data-allow-sign="true"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -2672,6 +2678,7 @@ function applyDynamicTolerance() {
                 placeholder="μA / NM"
                 data-field-type="zone"
                 data-field-key="${key}"
+                data-next-id="${nextId}"
                 oninput="handlePendingZoneInput(this)"
                 onkeydown="handleSlashBackspace(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -2681,6 +2688,7 @@ function applyDynamicTolerance() {
                 data-system="${currentSystem}"
                 data-profile="${profile}"
                 data-field-key="${key}"
+                data-next-id="${nextId}"
                 ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
@@ -3741,7 +3749,15 @@ function handleCategoryChange(el) {
         };
 
         window.numpadConfirm = function() {
+            var completedInput = _active;
             closeNumpad();
+            if (!completedInput || !completedInput.dataset.nextId) return;
+
+            var nextInput = elById(completedInput.dataset.nextId);
+            if (!nextInput || nextInput.tagName !== 'INPUT') return;
+
+            // Let the current field finish formatting before opening the numpad for the next parameter.
+            setTimeout(function() { nextInput.focus(); }, 0);
         };
 
         // Intercept focus on inputs inside .horizontal-field, init modal, or marked custom fields
