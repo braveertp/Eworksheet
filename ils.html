@@ -352,12 +352,18 @@
                 white-space: normal;
                 line-height: 1.2;
             }
+            .horizontal-field input[type="text"] {
+                font-size: 12px !important;
+            }
         }
         @media (max-width: 400px) {
             .horizontal-field {
                 grid-template-columns: minmax(0,1fr) 104px 90px;
                 gap: 6px;
                 padding: 6px 10px;
+            }
+            .horizontal-field input[type="text"] {
+                font-size: 11px !important;
             }
         }
 
