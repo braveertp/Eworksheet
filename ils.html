@@ -1139,14 +1139,20 @@
             return (fractionPart > 0.5 ? (integerPart + 1) / factor : integerPart / factor).toFixed(decimals);
         }
 
-        // Round to an integer using only the first decimal digit:
-        // 25.55 → 25; 25.60 → 26.
+        // Round from the rightmost decimal digit toward the integer.
+        // A digit 0–5 stays down; 6–9 carries one place left.
+        // Examples: 25.55 → 25, 25.56 → 26, 25.60 → 26.
         function roundHalfDown(value) {
             const absolute = Math.abs(value);
-            const integerPart = Math.floor(absolute);
-            const firstDecimalDigit = Math.floor((absolute - integerPart) * 10 + 1e-8);
-            const rounded = firstDecimalDigit >= 6 ? integerPart + 1 : integerPart;
-            return Math.sign(value) * rounded;
+            let [integerPart, decimalPart = ''] = absolute.toFixed(10).split('.');
+            decimalPart = decimalPart.replace(/0+$/, '');
+
+            let carry = 0;
+            for (let index = decimalPart.length - 1; index >= 0; index--) {
+                carry = Number(decimalPart[index]) + carry >= 6 ? 1 : 0;
+            }
+
+            return Math.sign(value) * (Number(integerPart) + carry);
         }
 
         // ===== FORMAT-ON-BLUR HELPERS =====
