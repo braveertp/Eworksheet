@@ -1424,7 +1424,7 @@
         },
         AM: {
             alarm_150: { label: "Alignment Alarm 150", tol: "+15μA", min: 0, max: 15 },
-            alarm_90: { label: "Alignment Alarm 90", tol: "-15μA", min: -15, max: 0, allowSign: true }
+            alarm_90: { label: "Alignment Alarm 90", tol: "-15μA", min: 0, max: -15 }
         },
         COLR: {
             ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
@@ -1606,7 +1606,6 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-profile="${profile}"
                 data-field-key="${key}"
                 data-cid="${cid}"
-                ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -1807,7 +1806,7 @@ function saveSubRun(runId, subSystem, subProfile, cid) {
         systemType: subSystem,
         profile: subProfile,
         transmitter: txEl.value,
-        timestamp: (function(){ var n=new Date(); return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); })(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         values: {},
         status: 'INITIAL'
     };
@@ -2511,7 +2510,7 @@ function applyDynamicTolerance() {
                 systemType: subSystem,
                 profile: subProfile,
                 transmitter: txEl.value,
-                timestamp: (function(){ var n=new Date(); return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); })(),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 values: {},
                 status: 'INITIAL'
             };
@@ -2672,7 +2671,6 @@ function applyDynamicTolerance() {
                 data-system="${currentSystem}"
                 data-profile="${profile}"
                 data-field-key="${key}"
-                ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -2772,7 +2770,7 @@ function applyDynamicTolerance() {
         systemType: currentSystem,
         profile: profile,
         transmitter: tx,
-        timestamp: (function(){ var n=new Date(); return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); })(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         values: {},
         status: 'INITIAL'
     };
@@ -3148,9 +3146,10 @@ function confirmExport() {
         rowsHtml += `
             <tr>
                 <td style="text-align:center;font-weight:700">${run.runNumber}</td>
-                <td style="text-align:center;white-space:nowrap">${run.timestamp}</td>
-                <td style="text-align:center"><span class="badge-system">${run.systemType}</span><br><span style="font-size:10px;color:#475569">${run.transmitter}</span></td>
+                <td style="text-align:center"><span class="badge-system">${run.systemType}</span></td>
                 <td style="font-weight:600">${run.profile}${colrDir}</td>
+                <td style="text-align:center">${run.transmitter}</td>
+                <td style="text-align:center">${run.timestamp}</td>
                 <td>${buildValuesHtml(run.systemType, run.profile, run.values)}</td>
                 <td class="status-${run.status}" style="text-align:center;font-weight:700">${run.status}</td>
             </tr>`;
@@ -3161,9 +3160,10 @@ function confirmExport() {
                 rowsHtml += `
                     <tr class="subrun-row">
                         <td style="text-align:center;font-weight:700">↳</td>
-                        <td style="text-align:center;white-space:nowrap">${sub.timestamp}</td>
-                        <td style="text-align:center"><span class="badge-system">${sub.systemType}</span><br><span style="font-size:10px;color:#475569">${sub.transmitter}</span></td>
+                        <td style="text-align:center"><span class="badge-system">${sub.systemType}</span></td>
                         <td style="font-weight:600">${sub.profile}${subColrDir}</td>
+                        <td style="text-align:center">${sub.transmitter}</td>
+                        <td style="text-align:center">${sub.timestamp}</td>
                         <td>${buildValuesHtml(sub.systemType, sub.profile, sub.values)}</td>
                         <td class="status-${sub.status}" style="text-align:center;font-weight:700">${sub.status}</td>
                     </tr>`;
@@ -3193,7 +3193,7 @@ function confirmExport() {
         <table>
             <thead>
                 <tr>
-                    <th>#</th><th>Date</th><th>System / TX</th><th>Profile</th><th>Values</th><th>Status</th>
+                    <th>#</th><th>System</th><th>Profile</th><th>TX</th><th>Time</th><th>Values</th><th>Status</th>
                 </tr>
             </thead>
             <tbody>${rowsHtml}</tbody>
