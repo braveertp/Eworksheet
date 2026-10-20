@@ -1139,12 +1139,13 @@
             return (fractionPart > 0.5 ? (integerPart + 1) / factor : integerPart / factor).toFixed(decimals);
         }
 
-        // Round to the nearest integer, with .5 rounding down (only .6–.9 round up).
+        // Round to an integer using only the first decimal digit:
+        // 25.55 → 25; 25.60 → 26.
         function roundHalfDown(value) {
             const absolute = Math.abs(value);
             const integerPart = Math.floor(absolute);
-            const fractionPart = absolute - integerPart;
-            const rounded = fractionPart > 0.5 ? integerPart + 1 : integerPart;
+            const firstDecimalDigit = Math.floor((absolute - integerPart) * 10 + 1e-8);
+            const rounded = firstDecimalDigit >= 6 ? integerPart + 1 : integerPart;
             return Math.sign(value) * rounded;
         }
 
