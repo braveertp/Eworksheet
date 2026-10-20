@@ -342,14 +342,20 @@
         }
         @media (max-width: 480px) {
             .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 152px 108px;
+                grid-template-columns: minmax(0,1fr) 112px 96px;
                 gap: 8px;
                 padding: 6px 12px;
+            }
+            .horizontal-field span.text-\[9px\] {
+                padding-left: 4px;
+                padding-right: 4px;
+                white-space: normal;
+                line-height: 1.2;
             }
         }
         @media (max-width: 400px) {
             .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 136px 96px;
+                grid-template-columns: minmax(0,1fr) 104px 90px;
                 gap: 6px;
                 padding: 6px 10px;
             }
@@ -373,14 +379,14 @@
         }
         @media (max-width: 420px) {
             #sub-run-form-inline .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 126px 92px;
+                grid-template-columns: minmax(0,1fr) 108px 88px;
                 gap: 6px;
                 padding: 5px 10px;
             }
         }
         @media (max-width: 360px) {
             #sub-run-form-inline .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 120px 80px;
+                grid-template-columns: minmax(0,1fr) 102px 76px;
                 gap: 4px;
                 padding: 5px 8px;
             }
