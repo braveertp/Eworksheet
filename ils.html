@@ -331,7 +331,7 @@
 
         .horizontal-field {
             display: grid;
-            grid-template-columns: minmax(0,1fr) 138px 105px;
+            grid-template-columns: minmax(0,1fr) 170px 120px;
             align-items: center;
             gap: 12px;
             padding: 7px 16px;
@@ -342,14 +342,14 @@
         }
         @media (max-width: 480px) {
             .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 126px 92px;
+                grid-template-columns: minmax(0,1fr) 152px 108px;
                 gap: 8px;
                 padding: 6px 12px;
             }
         }
         @media (max-width: 400px) {
             .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 110px 82px;
+                grid-template-columns: minmax(0,1fr) 136px 96px;
                 gap: 6px;
                 padding: 6px 10px;
             }
@@ -357,7 +357,7 @@
 
         /* Tighter columns inside sub-run purple box (less available width due to padding) */
         #sub-run-form-inline .horizontal-field {
-            grid-template-columns: minmax(0,1fr) 118px 88px;
+            grid-template-columns: minmax(0,1fr) 148px 104px;
             gap: 8px;
             padding: 6px 12px;
         }
@@ -373,14 +373,14 @@
         }
         @media (max-width: 420px) {
             #sub-run-form-inline .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 100px 76px;
+                grid-template-columns: minmax(0,1fr) 126px 92px;
                 gap: 6px;
                 padding: 5px 10px;
             }
         }
         @media (max-width: 360px) {
             #sub-run-form-inline .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 100px 66px;
+                grid-template-columns: minmax(0,1fr) 120px 80px;
                 gap: 4px;
                 padding: 5px 8px;
             }
@@ -1133,6 +1133,15 @@
             return (fractionPart > 0.5 ? (integerPart + 1) / factor : integerPart / factor).toFixed(decimals);
         }
 
+        // Round to the nearest integer, with .5 rounding down (only .6–.9 round up).
+        function roundHalfDown(value) {
+            const absolute = Math.abs(value);
+            const integerPart = Math.floor(absolute);
+            const fractionPart = absolute - integerPart;
+            const rounded = fractionPart > 0.5 ? integerPart + 1 : integerPart;
+            return Math.sign(value) * rounded;
+        }
+
         // ===== FORMAT-ON-BLUR HELPERS =====
         // Format normal numeric field on blur, then re-validate
         function formatNumericBlur(el, system, profile, key) {
@@ -1164,7 +1173,7 @@
             const uA = parseFloat(parts[0]);
             const angle = parseFloat(parts[1]);
             if (isNaN(uA) || isNaN(angle)) return;
-            el.value = `${Math.round(uA)}/${Math.round(angle)}`;
+            el.value = `${roundHalfDown(uA)}/${roundHalfDown(angle)}`;
             validateClearanceInput(el);
         }
 
@@ -1177,7 +1186,7 @@
             const uA = parseFloat(parts[0]);
             const nm = parseFloat(parts[1]);
             if (isNaN(uA) || isNaN(nm)) return;
-            el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
+            el.value = `${roundHalfDown(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
             validateZoneInput(el, key);
         }
 
@@ -1209,7 +1218,7 @@
             const uA = parseFloat(parts[0]);
             const angle = parseFloat(parts[1]);
             if (isNaN(uA) || isNaN(angle)) return;
-            el.value = `${Math.round(uA)}/${Math.round(angle)}`;
+            el.value = `${roundHalfDown(uA)}/${roundHalfDown(angle)}`;
             validateSubClearance(el);
         }
 
@@ -1221,7 +1230,7 @@
             const uA = parseFloat(parts[0]);
             const nm = parseFloat(parts[1]);
             if (isNaN(uA) || isNaN(nm)) return;
-            el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
+            el.value = `${roundHalfDown(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
             validateSubZone(el, cid, key);
         }
 
@@ -1302,7 +1311,7 @@
                     const uA = parseFloat(parts[0]);
                     const angle = parseFloat(parts[1]);
                     if (!isNaN(uA) && !isNaN(angle)) {
-                        el.value = `${Math.round(uA)}/${Math.round(angle)}`;
+                        el.value = `${roundHalfDown(uA)}/${roundHalfDown(angle)}`;
                     }
                 }
                 if (cid) validateSubClearance(el);
@@ -1316,7 +1325,7 @@
                     const uA = parseFloat(parts[0]);
                     const nm = parseFloat(parts[1]);
                     if (!isNaN(uA) && !isNaN(nm)) {
-                        el.value = `${Math.round(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
+                        el.value = `${roundHalfDown(uA)}/${parseFloat(customRound(nm, 2)).toFixed(2)}`;
                     }
                 }
                 if (cid) validateSubZone(el, cid, key);
@@ -1424,7 +1433,7 @@
         },
         AM: {
             alarm_150: { label: "Alignment Alarm 150", tol: "+15μA", min: 0, max: 15 },
-            alarm_90: { label: "Alignment Alarm 90", tol: "-15μA", min: 0, max: -15 }
+            alarm_90: { label: "Alignment Alarm 90", tol: "-15μA", min: -15, max: 0, allowSign: true }
         },
         COLR: {
             ident:        { label: "Identification", tol: "SAT", type: "checkbox" },
@@ -1606,6 +1615,7 @@ function renderSubFields(containerId, system, profile, cid) {
                 data-profile="${profile}"
                 data-field-key="${key}"
                 data-cid="${cid}"
+                ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -1806,7 +1816,7 @@ function saveSubRun(runId, subSystem, subProfile, cid) {
         systemType: subSystem,
         profile: subProfile,
         transmitter: txEl.value,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: (function(){ var n=new Date(); return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); })(),
         values: {},
         status: 'INITIAL'
     };
@@ -2510,7 +2520,7 @@ function applyDynamicTolerance() {
                 systemType: subSystem,
                 profile: subProfile,
                 transmitter: txEl.value,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: (function(){ var n=new Date(); return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); })(),
                 values: {},
                 status: 'INITIAL'
             };
@@ -2671,6 +2681,7 @@ function applyDynamicTolerance() {
                 data-system="${currentSystem}"
                 data-profile="${profile}"
                 data-field-key="${key}"
+                ${f.allowSign ? 'data-allow-sign="true"' : ''}
                 oninput="clearValidationState(this)"
                 onkeydown="handleFieldEnter(event, '${nextId}')"
                 class="w-full py-2 px-3 text-sm font-black text-slate-800 bg-slate-50 border border-slate-200 rounded-full text-center" autocomplete="off">`;
@@ -2770,7 +2781,7 @@ function applyDynamicTolerance() {
         systemType: currentSystem,
         profile: profile,
         transmitter: tx,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: (function(){ var n=new Date(); return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); })(),
         values: {},
         status: 'INITIAL'
     };
@@ -3146,10 +3157,9 @@ function confirmExport() {
         rowsHtml += `
             <tr>
                 <td style="text-align:center;font-weight:700">${run.runNumber}</td>
-                <td style="text-align:center"><span class="badge-system">${run.systemType}</span></td>
+                <td style="text-align:center;white-space:nowrap">${run.timestamp}</td>
+                <td style="text-align:center"><span class="badge-system">${run.systemType}</span><br><span style="font-size:10px;color:#475569">${run.transmitter}</span></td>
                 <td style="font-weight:600">${run.profile}${colrDir}</td>
-                <td style="text-align:center">${run.transmitter}</td>
-                <td style="text-align:center">${run.timestamp}</td>
                 <td>${buildValuesHtml(run.systemType, run.profile, run.values)}</td>
                 <td class="status-${run.status}" style="text-align:center;font-weight:700">${run.status}</td>
             </tr>`;
@@ -3160,10 +3170,9 @@ function confirmExport() {
                 rowsHtml += `
                     <tr class="subrun-row">
                         <td style="text-align:center;font-weight:700">↳</td>
-                        <td style="text-align:center"><span class="badge-system">${sub.systemType}</span></td>
+                        <td style="text-align:center;white-space:nowrap">${sub.timestamp}</td>
+                        <td style="text-align:center"><span class="badge-system">${sub.systemType}</span><br><span style="font-size:10px;color:#475569">${sub.transmitter}</span></td>
                         <td style="font-weight:600">${sub.profile}${subColrDir}</td>
-                        <td style="text-align:center">${sub.transmitter}</td>
-                        <td style="text-align:center">${sub.timestamp}</td>
                         <td>${buildValuesHtml(sub.systemType, sub.profile, sub.values)}</td>
                         <td class="status-${sub.status}" style="text-align:center;font-weight:700">${sub.status}</td>
                     </tr>`;
@@ -3193,7 +3202,7 @@ function confirmExport() {
         <table>
             <thead>
                 <tr>
-                    <th>#</th><th>System</th><th>Profile</th><th>TX</th><th>Time</th><th>Values</th><th>Status</th>
+                    <th>#</th><th>Date</th><th>System / TX</th><th>Profile</th><th>Values</th><th>Status</th>
                 </tr>
             </thead>
             <tbody>${rowsHtml}</tbody>
