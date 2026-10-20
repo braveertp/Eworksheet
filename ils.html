@@ -367,11 +367,23 @@
             }
         }
 
-        /* Tighter columns inside sub-run purple box (less available width due to padding) */
-        #sub-run-form-inline .horizontal-field {
-            grid-template-columns: minmax(0,1fr) 148px 104px;
+        /* Tighter tolerance column inside sub-run forms, preserving room for parameter labels. */
+        #sub-run-form-inline .horizontal-field,
+        .sub-run-form-panel .horizontal-field {
+            grid-template-columns: minmax(0,1fr) 124px 104px;
             gap: 8px;
             padding: 6px 12px;
+        }
+        /* Keep the tolerance-switch font size; only reduce its horizontal padding in sub-runs. */
+        #sub-run-form-inline .tol-radio label,
+        .sub-run-form-panel .tol-radio label {
+            padding-left: 14px;
+            padding-right: 10px;
+        }
+        #sub-run-form-inline .tol-radio input[type="radio"]:checked + label,
+        .sub-run-form-panel .tol-radio input[type="radio"]:checked + label {
+            padding-left: 10px;
+            padding-right: 10px;
         }
         /* field label & tol badge inside sub-run: allow wrapping on narrow */
         #sub-run-form-inline .horizontal-field .field-label {
@@ -384,15 +396,17 @@
             line-height: 1.2;
         }
         @media (max-width: 420px) {
-            #sub-run-form-inline .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 108px 88px;
+            #sub-run-form-inline .horizontal-field,
+            .sub-run-form-panel .horizontal-field {
+                grid-template-columns: minmax(0,1fr) 96px 88px;
                 gap: 6px;
                 padding: 5px 10px;
             }
         }
         @media (max-width: 360px) {
-            #sub-run-form-inline .horizontal-field {
-                grid-template-columns: minmax(0,1fr) 102px 76px;
+            #sub-run-form-inline .horizontal-field,
+            .sub-run-form-panel .horizontal-field {
+                grid-template-columns: minmax(0,1fr) 90px 76px;
                 gap: 4px;
                 padding: 5px 8px;
             }
